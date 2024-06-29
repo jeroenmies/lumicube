@@ -34,7 +34,7 @@ icon_question_mark = [ [0,r,r,r,r,r,r,0], [r,r,r,r,r,r,r,r], [r,r,0,0,0,0,r,r], 
 import requests, json
 
 # Enter your API key here
-api_key = "870494127582e81839be4bb8266a60b3" # Create an account and put the API key here
+api_key = "" # Create an account and put the API key here
 
 # base_url variable to store url
 base_url = "http://api.openweathermap.org/data/2.5/weather?"

@@ -14,10 +14,10 @@ This repository contains some example code and documentation for the LumiCube:
 * https://www.indiegogo.com/projects/lumicube-an-led-cube-kit-for-the-raspberry-pi
 
 More detailed information can be found in our project booklet:
-* https://abstractfoundry.com/lumicube/manual.pdf
+* https://web.archive.org/web/20230924051459/https://abstractfoundry.com/lumicube/manual.pdf
 
 For getting started head to our resources page:
-* https://abstractfoundry.com/lumicube/resources
+* https://web.archive.org/web/20230924051459/https://www.abstractfoundry.com/lumicube/resources/
 
 (Note: the only supported operating system at the moment is the full 32bit Raspberry Pi OS.)
 

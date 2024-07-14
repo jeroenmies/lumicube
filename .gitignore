@@ -1,0 +1,47 @@
+## STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache/
+
+### IntelliJ IDEA ###
+.idea/*
+*.iml
+*.ipr
+classes/
+
+# MacOS Finder
+.DS_Store
+
+# Build Artifacts
+*.zip
+*.tar
+*.tar.xz
+*.tar.gz
+*.7z
+*.rar
+.gradle
+**/dist/
+**/build/
+**/bin/
+!gradle/wrapper/gradle-wrapper.jar
+out/
+/tmp/
+gradle-cache
+
+# Logs
+logs/
+coverage/
+*.log*
+
+# IDE Settings
+.idea/
+classes/
+.vscode/*
+!.vscode/*.code-snippets
+.vs/
+*.iml
+*.ipr

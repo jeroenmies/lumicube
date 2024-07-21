@@ -1,12 +1,15 @@
 import zipfile
 import io
+import traceback
+from pathlib import Path
+# import required modules for speech
+import pyttsx3
 
 # import required modules for time
 from datetime import datetime, timezone, timedelta
 
-timezone_offset = +2.0 
+timezone_offset = +2.0 # set to Amsterdam
 tzinfo = timezone(timedelta(hours=timezone_offset))
-
 
 # import required modules for API request
 import requests, json
@@ -107,18 +110,20 @@ def displaydata():
     # Scroll the time across the cube.
     time_text = datetime.now(tzinfo).strftime("%H:%M")
     display.scroll_text(time_text, green)
+
+    engine.say(f"{temp} graden")
+    engine.runAndWait()
     
-
-import datetime
-import traceback
-from pathlib import Path
-import pyttsx3
-
-import requests
-
 show_rain = True
 show_full_msg = False
 refresh_rate = 60
+
+# engine initiate for text to speach
+engine = pyttsx3.init()
+voices = engine.getProperty('voices')
+engine.setProperty('voice', 'english_rp+f3')
+
+
 display.set_all(black)
 
 try:

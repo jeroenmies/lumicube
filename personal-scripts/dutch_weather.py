@@ -12,7 +12,7 @@ tzinfo = timezone(timedelta(hours=timezone_offset))
 import requests, json
 
 # Enter your KNMI API key here
-api_key = "8df2b00f09" # Create an account and put the API key here
+api_key = "knmi_api_key" # Create an account and put the API key here
 # base_url variable to store url
 base_url = "https://weerlive.nl/api/weerlive_api_v2.php?"
 # Give city location in latitude and longitude
@@ -95,9 +95,7 @@ def fetchdata():
         print('Invalid request')
     
 
-while True:
-    fetchdata()
-
+def displaydata():
     display.set_all(black)
     display.scroll_text(locatie, yellow)
     display.scroll_text(samenv, yellow)
@@ -109,7 +107,7 @@ while True:
     # Scroll the time across the cube.
     time_text = datetime.now(tzinfo).strftime("%H:%M")
     display.scroll_text(time_text, green)
-    time.sleep(60)
+    
 
 import datetime
 import traceback
@@ -120,7 +118,7 @@ import requests
 
 show_rain = True
 show_full_msg = False
-
+refresh_rate = 60
 display.set_all(black)
 
 try:
@@ -129,7 +127,8 @@ try:
             show_full_msg = not show_full_msg
         if buttons.middle_pressed:
             show_rain = not show_rain
-
+        fetchdata()
+        displaydata()
         time.sleep(refresh_rate)
 except Exception:
     print(traceback.format_exc())

@@ -1,5 +1,3 @@
-import zipfile
-import io
 import traceback
 
 from foundry_api.standard_library import *
@@ -7,7 +5,7 @@ from foundry_api.standard_library import *
 # import required modules for time
 from datetime import datetime, timezone, timedelta
 
-timezone_offset = +2.0 
+timezone_offset = +2.0
 tzinfo = timezone(timedelta(hours=timezone_offset))
 
 # import required modules for API request
@@ -30,7 +28,7 @@ print(complete_url)
 
 # Neerslagintensiteit = 10^((waarde-109)/32)
 
-# Ter controle: een waarde van 77 is gelijk aan een neerslagintensiteit van 0,1 mm/u. 
+# Ter controle: een waarde van 77 is gelijk aan een neerslagintensiteit van 0,1 mm/u.
 
 # 112|09:45
 # 120|09:50
@@ -58,6 +56,96 @@ print(complete_url)
 # 000|11:40
 
 
+
+# digits are defined as bits on in a 3x5 grid, 0,0 =bottomleft
+digitAll = [ (0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2), (3,0), (3,1), (3,2), (4,0), (4,1), (4,2)]
+digit =   [[ (0,0), (0,1), (0,2), (1,0),        (1,2), (2,0),        (2,2), (3,0),        (3,2), (4,0), (4,1), (4,2)],
+           [        (0,1),               (1,1),               (2,1),               (3,1),               (4,1)       ],
+           [ (0,0), (0,1), (0,2), (1,0),               (2,0), (2,1), (2,2),               (3,2), (4,0), (4,1), (4,2)],
+           [ (0,0), (0,1), (0,2),               (1,2), (2,0), (2,1), (2,2),               (3,2), (4,0), (4,1), (4,2)],
+           [               (0,2),               (1,2), (2,0), (2,1), (2,2), (3,0),        (3,2), (4,0),        (4,2)],
+           [ (0,0), (0,1), (0,2),               (1,2), (2,0), (2,1), (2,2), (3,0),               (4,0), (4,1), (4,2)],
+           [ (0,0), (0,1), (0,2), (1,0),        (1,2), (2,0), (2,1), (2,2), (3,0),               (4,0)              ],
+           [               (0,2),               (1,2),               (2,2),               (3,2), (4,0), (4,1), (4,2)],
+           [ (0,0), (0,1), (0,2), (1,0),        (1,2), (2,0), (2,1), (2,2), (3,0),        (3,2), (4,0), (4,1), (4,2)],
+           [               (0,2),               (1,2), (2,0), (2,1), (2,2), (3,0),        (3,2), (4,0), (4,1), (4,2)]]
+# x and y from bottom left
+leftOnesLeds = [[(4,1),(5,1),(6,1)],[(4,2),(5,2),(6,2)],[(4,3),(5,3),(6,3)],[(4,4),(5,4),(6,4)],[(4,5),(5,5),(6,5)]]
+leftTensLeds = [[(0,1),(1,1),(2,1)],[(0,2),(1,2),(2,2)],[(0,3),(1,3),(2,3)],[(0,4),(1,4),(2,4)],[(0,5),(1,5),(2,5)]]
+# z and y from bottom left
+rightOnesLeds = [[(2,1),(1,1),(0,1)],[(2,2),(1,2),(0,2)],[(2,3),(1,3),(0,3)],[(2,4),(1,4),(0,4)],[(2,5),(1,5),(0,5)]]
+rightTensLeds = [[(6,1),(5,1),(4,1)],[(6,2),(5,2),(4,2)],[(6,3),(5,3),(4,3)],[(6,4),(5,4),(4,4)],[(6,5),(5,5),(4,5)]]
+
+def clear_left(all_leds, background_color):
+    for x in range(9):
+        for y in range(9):
+            all_leds[(x,y,8)] = background_color
+
+def clear_right(all_leds, background_color):
+    for y in range(9):
+        for z in range(9):
+            all_leds[(8,y,z)] = background_color
+
+def set_left(all_leds, value_leds, value_color, background_color, clear=False):
+    if clear:
+        clear_left(all_leds, background_color)
+    for v in value_leds:
+        all_leds[(v[0],v[1],v[2])] = value_color
+
+def set_right(all_leds, value_leds, value_color, background_color, clear=False):
+    if clear:
+        clear_right(all_leds, background_color)
+    for v in value_leds:
+        all_leds[(v[0],v[1],v[2])] = value_color
+
+def clear_digits(all_leds, side, background):
+    if side == 'right':
+        clear_right(all_leds, background)
+    else:
+        clear_left(all_leds, background)
+
+def set_digits(all_leds, side, total, color, background,move_left):
+    clear_digits(all_leds, side, background)
+    if total == None:
+        return
+
+    ones = total % 10
+    tens = total // 10
+    shift = 0
+    if tens == 0:
+        shift = 1
+
+    if move_left == 1:
+        shift = 3
+        all_leds[(8,1,7)] = color
+
+    if side == 'right':
+        onesLeds = rightOnesLeds
+        tensLeds = rightTensLeds
+    else:
+        onesLeds = leftOnesLeds
+        tensLeds = leftTensLeds
+
+    for point in range(len(digit[ones])):
+        pair = onesLeds[digit[ones][point][0]][digit[ones][point][1]]
+        h = pair[0]
+        v = pair[1]
+        if side == 'right':
+            all_leds[(8,v,h+shift)] = color
+        else:
+            all_leds[(h-shift,v,8)] = color
+
+    if tens > 0:
+        for point in range(len(digit[tens])):
+            pair = tensLeds[digit[tens][point][0]][digit[tens][point][1]]
+            h = pair[0]
+            v = pair[1]
+            if side == 'right':
+                all_leds[(8,v,h+shift)] = color
+            else:
+                all_leds[(h-shift,v,8)] = color
+
+
 def fetchdata():
     global image
     global locatie
@@ -74,7 +162,7 @@ def fetchdata():
     # get method of requests module
     # return response object
     response = requests.get(complete_url)
-    
+
     if response.ok:
         # json method of response object
         # convert json format data into python format data
@@ -85,7 +173,7 @@ def fetchdata():
 
     # insert dummy data
     # json_data = '{"liveweer": [{"image": "halfbewolkt_regen", "plaats": "Rijswijk", "timestamp": 1721546885, "time": "21-07-2024 09:28:05", "temp": 18.9, "gtemp": 16.9, "samenv": "Regen", "lv": 92, "windr": "W", "windrgr": 270.2, "windms": 3.87, "windbft": 3, "windknp": 7.5, "windkmh": 13.9, "luchtd": 1007.27, "ldmmhg": 756, "dauwp": 17.7, "zicht": 4650, "gr": 27, "verw": "Eerst nog enkele (onweers)buien, vanaf vanavond droog", "sup": "05:47", "sunder": "21:50", "alarm": 0, "lkop": "Er zijn geen waarschuwingen", "ltekst": " Er zijn momenteel geen waarschuwingen van kracht.", "wrschklr": "groen", "wrsch_g": "-", "wrsch_gts": 0, "wrsch_gc": "-"}], "wk_verw": [{"dag": "21-07-2024", "image": "halfbewolkt", "max_temp": 23, "min_temp": 17, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 310, "windr": "NW", "neersl_perc_dag": 60, "zond_perc_dag": 78}, {"dag": "22-07-2024", "image": "halfbewolkt", "max_temp": 21, "min_temp": 15, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 289, "windr": "W", "neersl_perc_dag": 30, "zond_perc_dag": 77}, {"dag": "23-07-2024", "image": "regen", "max_temp": 21, "min_temp": 16, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 283, "windr": "W", "neersl_perc_dag": 80, "zond_perc_dag": 70}, {"dag": "24-07-2024", "image": "halfbewolkt", "max_temp": 18, "min_temp": 14, "windbft": 3, "windkmh": 18, "windknp": 10, "windms": 5, "windrgr": 298, "windr": "W", "neersl_perc_dag": 50, "zond_perc_dag": 74}, {"dag": "25-07-2024", "image": "halfbewolkt", "max_temp": 21, "min_temp": 13, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 291, "windr": "W", "neersl_perc_dag": 0, "zond_perc_dag": 68}], "uur_verw": [{"uur": "21-07-2024 10:00", "timestamp": 1721548800, "image": "halfbewolkt", "temp": 22, "windbft": 2, "windkmh": 10, "windknp": 6, "windms": 3, "windrgr": 296, "windr": "W", "neersl": 0, "gr": 579}, {"uur": "21-07-2024 11:00", "timestamp": 1721552400, "image": "bewolkt", "temp": 24, "windbft": 2, "windkmh": 10, "windknp": 6, "windms": 3, "windrgr": 298, "windr": "W", "neersl": 0, "gr": 662}, {"uur": "21-07-2024 12:00", "timestamp": 1721556000, "image": "zonnig", "temp": 25, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 304, "windr": "NW", "neersl": 0, "gr": 620}, {"uur": "21-07-2024 13:00", "timestamp": 1721559600, "image": "zonnig", "temp": 25, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 302, "windr": "W", "neersl": 0, "gr": 814}, {"uur": "21-07-2024 14:00", "timestamp": 1721563200, "image": "lichtbewolkt", "temp": 25, "windbft": 3, "windkmh": 18, "windknp": 10, "windms": 5, "windrgr": 301, "windr": "W", "neersl": 0, "gr": 781}, {"uur": "21-07-2024 15:00", "timestamp": 1721566800, "image": "zonnig", "temp": 25, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 300, "windr": "W", "neersl": 0, "gr": 737}, {"uur": "21-07-2024 16:00", "timestamp": 1721570400, "image": "lichtbewolkt", "temp": 24, "windbft": 3, "windkmh": 18, "windknp": 10, "windms": 5, "windrgr": 301, "windr": "W", "neersl": 0, "gr": 662}, {"uur": "21-07-2024 17:00", "timestamp": 1721574000, "image": "zonnig", "temp": 24, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 308, "windr": "NW", "neersl": 0, "gr": 476}, {"uur": "21-07-2024 18:00", "timestamp": 1721577600, "image": "halfbewolkt", "temp": 23, "windbft": 3, "windkmh": 18, "windknp": 10, "windms": 5, "windrgr": 313, "windr": "NW", "neersl": 0, "gr": 391}, {"uur": "21-07-2024 19:00", "timestamp": 1721581200, "image": "wolkennacht", "temp": 22, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 328, "windr": "NW", "neersl": 0, "gr": 216}, {"uur": "21-07-2024 20:00", "timestamp": 1721584800, "image": "halfbewolkt", "temp": 21, "windbft": 3, "windkmh": 14, "windknp": 8, "windms": 4, "windrgr": 333, "windr": "NW", "neersl": 0, "gr": 86}, {"uur": "21-07-2024 21:00", "timestamp": 1721588400, "image": "halfbewolkt", "temp": 20, "windbft": 2, "windkmh": 10, "windknp": 6, "windms": 3, "windrgr": 328, "windr": "NW", "neersl": 0, "gr": 14}, {"uur": "21-07-2024 22:00", "timestamp": 1721592000, "image": "nachtbewolkt", "temp": 19, "windbft": 2, "windkmh": 10, "windknp": 6, "windms": 3, "windrgr": 314, "windr": "NW", "neersl": 0, "gr": 0}, {"uur": "21-07-2024 23:00", "timestamp": 1721595600, "image": "nachtbewolkt", "temp": 19, "windbft": 2, "windkmh": 10, "windknp": 6, "windms": 3, "windrgr": 301, "windr": "W", "neersl": 0, "gr": 0}, {"uur": "22-07-2024 00:00", "timestamp": 1721599200, "image": "nachtbewolkt", "temp": 19, "windbft": 2, "windkmh": 10, "windknp": 6, "windms": 3, "windrgr": 297, "windr": "W", "neersl": 0, "gr": 0}, {"uur": "22-07-2024 01:00", "timestamp": 1721602800, "image": "helderenacht", "temp": 18, "windbft": 2, "windkmh": 10, "windknp": 6, "windms": 3, "windrgr": 299, "windr": "W", "neersl": 0, "gr": 0}, {"uur": "22-07-2024 02:00", "timestamp": 1721606400, "image": "helderenacht", "temp": 18, "windbft": 2, "windkmh": 7, "windknp": 4, "windms": 2, "windrgr": 301, "windr": "W", "neersl": 0, "gr": 0}, {"uur": "22-07-2024 03:00", "timestamp": 1721610000, "image": "helderenacht", "temp": 17, "windbft": 2, "windkmh": 7, "windknp": 4, "windms": 2, "windrgr": 310, "windr": "NW", "neersl": 0, "gr": 0}, {"uur": "22-07-2024 04:00", "timestamp": 1721613600, "image": "helderenacht", "temp": 17, "windbft": 2, "windkmh": 7, "windknp": 4, "windms": 2, "windrgr": 297, "windr": "W", "neersl": 0, "gr": 0}, {"uur": "22-07-2024 05:00", "timestamp": 1721617200, "image": "helderenacht", "temp": 16, "windbft": 2, "windkmh": 7, "windknp": 4, "windms": 2, "windrgr": 279, "windr": "W", "neersl": 0, "gr": 0}, {"uur": "22-07-2024 06:00", "timestamp": 1721620800, "image": "zonnig", "temp": 16, "windbft": 2, "windkmh": 7, "windknp": 4, "windms": 2, "windrgr": 272, "windr": "W", "neersl": 0, "gr": 47}, {"uur": "22-07-2024 07:00", "timestamp": 1721624400, "image": "zonnig", "temp": 17, "windbft": 2, "windkmh": 7, "windknp": 4, "windms": 2, "windrgr": 282, "windr": "W", "neersl": 0, "gr": 166}, {"uur": "22-07-2024 08:00", "timestamp": 1721628000, "image": "zonnig", "temp": 18, "windbft": 2, "windkmh": 7, "windknp": 4, "windms": 2, "windrgr": 286, "windr": "W", "neersl": 0, "gr": 316}, {"uur": "22-07-2024 09:00", "timestamp": 1721631600, "image": "halfbewolkt", "temp": 19, "windbft": 2, "windkmh": 7, "windknp": 4, "windms": 2, "windrgr": 276, "windr": "W", "neersl": 0, "gr": 457}], "api": [{"bron": "Bron: Weerdata KNMI/NOAA via Weerlive.nl", "max_verz": 300, "rest_verz": 296}]}'
-    # data = json.loads(json_data) 
+    # data = json.loads(json_data)
 
     for item in data.get("liveweer"):
         image = item["image"]
@@ -99,7 +187,7 @@ def fetchdata():
         alarm = item["alarm"]
         lkop = item["lkop"]
         ltekst = item["ltekst"]
-    
+
 def show_weather_icon():
     # Predefined colors
 
@@ -115,7 +203,7 @@ def show_weather_icon():
     m = magenta
     p = pink
     P = purple
-    
+
     icon_sun = [ [0,0,y,0,0,y,0,0], [0,0,0,0,0,0,0,0], [y,0,y,y,y,y,0,y], [0,0,y,y,y,y,0,0], [0,0,y,y,y,y,0,0], [y,0,y,y,y,y,0,y], [0,0,0,0,0,0,0,0], [0,0,y,0,0,y,0,0] ]
     icon_thunder = [ [0,0,0,D,D,D,0,0], [0,0,D,G,y,G,D,0], [0,D,G,y,G,G,G,D], [D,G,y,G,G,G,G,D], [0,D,y,y,y,D,D,0], [0,0,0,0,y,0,0,0], [0,0,0,y,0,0,0,0], [0,0,y,0,0,0,0,0] ]
     icon_rain = [ [0,0,b,0,0,b,0,0], [b,0,0,b,0,0,b,0], [0,b,0,0,b,0,0,b], [0,0,b,0,0,b,0,0], [b,0,0,b,0,0,b,0], [0,b,0,0,b,0,0,b], [0,0,b,0,0,b,0,0], [b,0,0,b,0,0,b,0] ]
@@ -133,9 +221,9 @@ def show_weather_icon():
     icon_night_cloud = [ [0,0,0,y,y,0,0,0], [0,0,y,y,0,0,0,0], [0,y,y,0,G,G,G,0], [0,y,y,G,w,w,w,G], [0,y,y,G,w,w,w,w], [0,0,G,w,w,w,w,w], [0,G,w,w,w,w,w,w], [G,w,w,w,w,w,w,w] ]
     icon_snow = [ [0,0,0,w,0,0,0,0], [0,0,w,w,w,0,0,0], [0,0,0,w,0,0,w,0], [0,w,0,w,w,w,w,w], [w,w,w,w,w,0,w,0], [0,w,0,0,w,0,0,0], [0,0,0,w,w,w,0,0], [0,0,0,0,w,0,0,0] ]
     icon_question_mark = [ [0,r,r,r,r,r,r,0], [r,r,r,r,r,r,r,r], [r,r,0,0,0,0,r,r], [0,0,0,0,0,0,r,r], [0,0,0,r,r,r,r,0], [0,0,0,r,r,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,r,r,0,0,0] ]
-    
+
     weather_icon = image
-    
+
     if weather_icon == "zonnig": icon = icon_sun
     elif weather_icon == "bliksem": icon = icon_thunder
     elif weather_icon == "regen": icon = icon_rain
@@ -151,37 +239,71 @@ def show_weather_icon():
     elif weather_icon == "helderenacht": icon = icon_moon
     elif weather_icon == "nachtbewolkt": icon = icon_night_cloud
     elif weather_icon == "sneeuw": icon = icon_snow
-    
+
     else: icon = icon_question_mark
 
     display.set_panel("top", icon)
 
+def displaytemperature():
+    result = str(temp).split('.')
+     # colour of the text based on temperature
+    celsius_temperature = int(result[0])
+    if celsius_temperature >= 30: colour = red
+    elif celsius_temperature >= 25 and celsius_temperature < 30: colour = orange
+    elif celsius_temperature >= 20 and celsius_temperature < 25: colour = yellow
+    elif celsius_temperature >= 10 and celsius_temperature < 20: colour = green
+    elif celsius_temperature >= 0 and celsius_temperature < 10: colour = cyan
+    elif celsius_temperature >= -10 and celsius_temperature < 0: colour = blue
+    else: colour = white
+
+    display.set_3d(leds)
+    set_digits(leds,'left',celsius_temperature,colour,black,0)
+    set_digits(leds,'right',int(result[1]),colour,black,1)
+    display.set_3d(leds)
+
+def displaywind():
+    result = str(windkmh).split('.')
+
+    display.set_3d(leds)
+    set_digits(leds,'left',int(result[0]),blue,black,0)
+    set_digits(leds,'right',int(result[1]),blue,black,1)
+    display.set_3d(leds)
 
 def displaydata():
     display.set_all(black)
-    
+
     show_weather_icon()
-    
+
     if alarm > 0:
         for frequency in range(500, 2000, 100):
             speaker.tone(frequency, 0.01)
         speaker.say("Weather alert for {0}".format(locatie))
         display.scroll_text(locatie + ": " + lkop + " " + ltekst, red)
 
-    display.scroll_text(samenv, yellow)
+    # display.scroll_text(samenv, yellow)
     # display.scroll_text(timeknmi + " ", orange)
     # display.scroll_text(str(temp) + " graden", yellow)
-    display.scroll_text(windr + " " + str(windkmh) + " km/h", purple)
-    display.scroll_text(verw, yellow)
+    # display.scroll_text(windr + " " + str(windkmh) + " km/h", purple)
+    # display.scroll_text(verw, yellow)
     # Scroll the time across the cube.
     time_text = datetime.now(tzinfo).strftime("%H:%M")
-    display.scroll_text(time_text, green)
-    
+    # display.scroll_text(time_text, green)
+    displaytemperature()
+    time.sleep(5)
+    displaywind()
+    time.sleep(5)
 
 
 show_rain = True
 show_full_msg = False
 refresh_rate = 60
+# initialize our led dictionary
+leds = {}
+for x in range(9):
+    for y in range(9):
+        for z in range(9):
+            leds[(x,0,z)] = black
+
 display.set_all(black)
 
 try:

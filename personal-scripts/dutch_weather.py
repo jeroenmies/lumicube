@@ -11,51 +11,37 @@ tzinfo = timezone(timedelta(hours=timezone_offset))
 # import required modules for API request
 import requests, json
 
+# Predefined colors
+D = 0x5A5A5A # dark grey
+G = grey
+w = white
+r = red
+o = orange
+y = yellow
+g = green
+c = cyan
+b = blue
+m = magenta
+p = pink
+P = purple
+
 # Enter your KNMI API key here
 api_key = "knmi_api_key" # Create an account and put the API key here
-# base_url variable to store url
-base_url = "https://weerlive.nl/api/weerlive_api_v2.php?"
+weerlive_url = "https://weerlive.nl/api/weerlive_api_v2.php?"
+
+# buienradar: https://gadgets.buienradar.nl/data/raintext/?lat=52.03&lon=4.34
+buienradar_url = "https://gadgets.buienradar.nl/data/raintext/?"
+
 # Give city location in latitude and longitude
 lat =  "52.0355505"
 lon = "4.3480274"
 
-# complete_url variable to store
-# complete url address
-complete_url = base_url + "key=" + api_key + "&locatie=" + lat + "," + lon
-print(complete_url)
+# complete url addresses
+complete_weerlive_url = weerlive_url + "key=" + api_key + "&locatie=" + lat + "," + lon
+complete_buienradar_url = buienradar_url + "lat=" + lat + "&lon=" + lon
 
-# buienradar: https://gadgets.buienradar.nl/data/raintext/?lat=52.03&lon=4.34
-
-# Neerslagintensiteit = 10^((waarde-109)/32)
-
-# Ter controle: een waarde van 77 is gelijk aan een neerslagintensiteit van 0,1 mm/u.
-
-# 112|09:45
-# 120|09:50
-# 122|09:55
-# 116|10:00
-# 112|10:05
-# 112|10:10
-# 096|10:15
-# 087|10:20
-# 000|10:25
-# 000|10:30
-# 000|10:35
-# 000|10:40
-# 000|10:45
-# 000|10:50
-# 000|10:55
-# 000|11:00
-# 000|11:05
-# 000|11:10
-# 000|11:15
-# 000|11:20
-# 000|11:25
-# 000|11:30
-# 000|11:35
-# 000|11:40
-
-
+# print(complete_weerlive_url)
+# print(complete_buienradar_url)
 
 # digits are defined as bits on in a 3x5 grid, 0,0 =bottomleft
 digitAll = [ (0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2), (3,0), (3,1), (3,2), (4,0), (4,1), (4,2)]
@@ -165,7 +151,7 @@ def initalize_left_right_leds():
 def fetchdata():
     # get method of requests module
     # return response object
-    response = requests.get(complete_url)
+    response = requests.get(complete_weerlive_url)
 
     if response.ok:
         # json method of response object
@@ -188,22 +174,65 @@ def fetchdata():
     global hour_forecast
     hour_forecast = data.get("uur_verw")
 
+
+def fetchraindata():
+    # get method of requests module
+    # return response object
+    response = requests.get(complete_buienradar_url)
+
+    if response.ok:
+        # print(response.headers)
+        # print(response.text)
+        # print(response.status_code)
+        # json_content = json.loads(response)
+        lines = response.text.splitlines()
+        global totalrain
+        global max_rainfall_two_hours
+        global five_minute_rain
+        totalrain = 0
+        max_rainfall_two_hours = 0
+        five_minute_rain = []
+        # looping through lines of forecasted precipitation data and
+        for line in lines:
+            (val, key) = line.split("|")
+            # See buienradar documentation for this api, attribution
+            # https://www.buienradar.nl/overbuienradar/gratis-weerdata
+            #
+            # Op basis van de door u gewenste coordinaten (latitude en longitude)
+            # kunt u de neerslag tot twee uur vooruit ophalen in tekstvorm. De
+            # data wordt iedere 5 minuten geupdatet. Op deze pagina kunt u de
+            # neerslag in tekst vinden. De waarde 0 geeft geen neerslag aan (droog)
+            # de waarde 255 geeft zware neerslag aan. Gebruik de volgende formule
+            # voor het omrekenen naar de neerslagintensiteit in de eenheid
+            # millimeter per uur (mm/u):
+            #
+            # Neerslagintensiteit = 10^((waarde-109)/32)
+            #
+            # Ter controle: een waarde van 77 is gelijk aan een neerslagintensiteit
+            # van 0,1 mm/u.
+            val = float(val.replace(',', '.'))
+            mmu = 10**((val - 109) / 32)
+            totalrain += round(mmu,2)
+            if mmu > max_rainfall_two_hours:
+                max_rainfall_two_hours = mmu
+            five_minute_rain.append(round(mmu,2))
+
+        # print(five_minute_rain)
+        # print("maximum rain in the next two hours =" + round(max_rainfall_two_hours,2) + " mm/u")
+        # print("total rain in the next two hours = " + round(totalrain,2) + " mm")
+    else:
+        print('Invalid request')
+
+    # testdata setup
+    # five_minute_rain = []
+    # for i in range(0,24):
+    #     testvalue = i*3/10
+    #     five_minute_rain.append(testvalue)
+    #     if testvalue > max_rainfall_two_hours:
+    #         max_rainfall_two_hours = testvalue
+
+
 def show_weather_icon(image):
-    # Predefined colors
-
-    D = 0x5A5A5A # dark grey
-    G = grey
-    w = white
-    r = red
-    o = orange
-    y = yellow
-    g = green
-    c = cyan
-    b = blue
-    m = magenta
-    p = pink
-    P = purple
-
     icon_sun = [ [0,0,y,0,0,y,0,0], [0,0,0,0,0,0,0,0], [y,0,y,y,y,y,0,y], [0,0,y,y,y,y,0,0], [0,0,y,y,y,y,0,0], [y,0,y,y,y,y,0,y], [0,0,0,0,0,0,0,0], [0,0,y,0,0,y,0,0] ]
     icon_thunder = [ [0,0,0,D,D,D,0,0], [0,0,D,G,y,G,D,0], [0,D,G,y,G,G,G,D], [D,G,y,G,G,G,G,D], [0,D,y,y,y,D,D,0], [0,0,0,0,y,0,0,0], [0,0,0,y,0,0,0,0], [0,0,y,0,0,0,0,0] ]
     icon_rain = [ [0,0,b,0,0,b,0,0], [b,0,0,b,0,0,b,0], [0,b,0,0,b,0,0,b], [0,0,b,0,0,b,0,0], [b,0,0,b,0,0,b,0], [0,b,0,0,b,0,0,b], [0,0,b,0,0,b,0,0], [b,0,0,b,0,0,b,0] ]
@@ -246,6 +275,10 @@ def show_weather_icon(image):
 
 
 def display_two_numbers(number_left, number_right, colour_left, colour_right):
+    if number_left >= 100:
+        number_left = 99
+    if number_right >= 100:
+        number_left = 99
     display.set_3d(leds)
     set_digits(leds,'left',number_left,colour_left,black)
     set_digits(leds,'right',number_right,colour_right,black)
@@ -312,11 +345,13 @@ def show_week_forecast():
         time.sleep(5)
 
 
-def show_hour_forecast():
+def show_hour_rain_forecast():
     counter = 0
     for hour in hour_forecast:
         if counter <= 15:
-            rain = hour["neersl"]+1
+            rain = int(hour["neersl"]+1)
+            for i in range(1,7):
+                display.set_led(counter,i,black)
             for i in range(0,rain):
                 if i == 0:
                     display.set_led(counter,i,white)
@@ -326,22 +361,43 @@ def show_hour_forecast():
     time.sleep(5)
 
 
+def show_five_minute_rain_forecast():
+    counter = 0
+    for mmu in five_minute_rain:
+        if counter <= 15:
+            # show the rain, relative to the max value in the next 2 hours
+            rain = round(mmu/max_rainfall_two_hours*8)
+            for i in range(1,7):
+                display.set_led(counter,i,black)
+            for i in range(0,rain):
+                display.set_led(counter,i,blue)
+            counter+=1
+    time.sleep(5)
+
+
 def displaydata():
     display.set_all(black)
 
     show_weather_icon(liveweather[0]["image"])
 
+    show_five_minute_rain_forecast()
+
     if liveweather[0]["alarm"] > 0:
         for frequency in range(500, 2000, 100):
             speaker.tone(frequency, 0.01)
         speaker.say("Weather alert for {0}".format(locatie))
-        display.scroll_text(liveweather[0]["locatie"] + ": " + liveweather[0]["lkop"] + " " + liveweather[0]["ltekst"], red)
+        display.scroll_text(liveweather[0]["plaats"] + ": " + liveweather[0]["lkop"] + " " + liveweather[0]["ltekst"], red)
 
-    # display.scroll_text(samenv, yellow)
-    # display.scroll_text(timeknmi + " ", orange)
-    # display.scroll_text(str(temp) + " graden", yellow)
-    # display.scroll_text(windr + " " + str(windkmh) + " km/h", purple)
-    # display.scroll_text(verw, yellow)
+    if show_full_msg:
+        print("scrolling forecast message")
+        # display.scroll_text(timeknmi + " ", orange)
+        display.scroll_text(liveweather[0]["plaats"] + ": " + liveweather[0]["samenv"], yellow)
+        display.scroll_text(str(liveweather[0]["temp"]) + " graden", yellow)
+        display.scroll_text(liveweather[0]["windr"] + " " + str(liveweather[0]["windkmh"]) + " km/h", blue)
+        # display.scroll_text(verw, yellow)
+    else:
+        print("no scrolling forecast message")
+
     # Scroll the time across the cube.
     time_text = datetime.now(tzinfo).strftime("%H:%M")
     # display.scroll_text(time_text, green)
@@ -353,11 +409,37 @@ def displaydata():
     displaytemperature(liveweather[0]["temp"])
     time.sleep(5)
 
-    show_week_forecast()
-    show_hour_forecast()
+    if show_forecast:
+        print("5 day forecast")
+        show_week_forecast()
+    else:
+        print("no 5 day forecast")
+    if (totalrain > 0):
+        print("rain incoming show 5 minute forecast")
+        show_five_minute_rain_forecast()
+    if show_rain:
+        print("16 hour rain forecast")
+        show_hour_rain_forecast()
+    else:
+        print("no 16 hour rain forecast")
+
+
+def wait_on_buttons(delay):
+    global button_warned
+    action = None
+    try:
+        action = buttons.get_next_action(delay)
+    except:
+        if not button_warned:
+            print('This lumicube does not appear to have buttons?')
+            button_warned = True
+        time.sleep(delay)
+
+    return action
+
 
 show_rain = True
-show_full_msg = False
+show_full_msg = True
 show_forecast = True
 refresh_rate = 120
 # initialize our led dictionary
@@ -368,18 +450,27 @@ display.set_all(black)
 
 try:
     while True:
-        if buttons.top_pressed:
-            show_full_msg = not show_full_msg
-        if buttons.middle_pressed:
-            show_rain = not show_rain
-        if buttons.bottom_pressed:
-            show_forecast = not show_forecast
-            
         fetchdata()
+        fetchraindata()
         displaydata()
-        
-        time.sleep(refresh_rate)
-        
+
+        waiting = True
+        while waiting:
+            button = wait_on_buttons(120)
+
+            if button == None:
+                print('no selection')
+                waiting = False
+            elif button == 'top':
+                show_rain = not show_rain
+            elif button == 'bottom':
+                show_full_msg = not show_full_msg
+            elif button == 'middle':
+                show_forecast = not show_forecast
+            else:
+                print('no change')
+            waiting = False
+
 except Exception:
     print(traceback.format_exc())
     screen.draw_rectangle(0, 0, 320, 240, black)

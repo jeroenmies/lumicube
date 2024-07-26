@@ -224,12 +224,12 @@ def fetchraindata():
         print('Invalid request')
 
     # testdata setup
-    # five_minute_rain = []
-    # for i in range(0,24):
-    #     testvalue = i*3/10
-    #     five_minute_rain.append(testvalue)
-    #     if testvalue > max_rainfall_two_hours:
-    #         max_rainfall_two_hours = testvalue
+    five_minute_rain = []
+    for i in range(0,24):
+        testvalue = i*3/10
+        five_minute_rain.append(testvalue)
+        if testvalue > max_rainfall_two_hours:
+            max_rainfall_two_hours = testvalue
 
 
 def show_weather_icon(image):
@@ -266,7 +266,7 @@ def show_weather_icon(image):
     elif weather_icon == "zwaarbewolkt": icon = icon_heavy_clouds
     elif weather_icon == "nachtmist": icon = icon_night_fog
     elif weather_icon == "helderenacht": icon = icon_moon
-    elif weather_icon == "nachtbewolkt": icon = icon_night_cloud
+    elif weather_icon == "wolkennacht": icon = icon_night_cloud
     elif weather_icon == "sneeuw": icon = icon_snow
 
     else: icon = icon_question_mark
@@ -362,25 +362,31 @@ def show_hour_rain_forecast():
 
 
 def show_five_minute_rain_forecast():
-    counter = 0
-    for mmu in five_minute_rain:
-        if counter <= 15:
-            # show the rain, relative to the max value in the next 2 hours
-            rain = round(mmu/max_rainfall_two_hours*8)
-            for i in range(1,7):
-                display.set_led(counter,i,black)
-            for i in range(0,rain):
-                display.set_led(counter,i,blue)
-            counter+=1
-    time.sleep(5)
+    for repeat in range(0,2):
 
+        # clear display
+        for i in range(0,16):
+            for j in range(0,8):
+                display.set_led(i,j,black)
+
+        for j in range(0,24):
+            counter = 0
+            for mmu in five_minute_rain:
+                locatie = 15 - j + counter
+                if (locatie) <= 15 and locatie > 0:
+                    # show the rain, relative to the max value in the next 2 hours
+                    rain = round(mmu/max_rainfall_two_hours*8)
+                    for i in range(rain,7):
+                        display.set_led(15 - j + counter,i,black)
+                    for i in range(0,rain):
+                        display.set_led(15 - j + counter,i,blue)
+                counter+=1
+        time.sleep(5)
 
 def displaydata():
     display.set_all(black)
 
     show_weather_icon(liveweather[0]["image"])
-
-    show_five_minute_rain_forecast()
 
     if liveweather[0]["alarm"] > 0:
         for frequency in range(500, 2000, 100):
@@ -438,8 +444,8 @@ def wait_on_buttons(delay):
     return action
 
 
-show_rain = True
-show_full_msg = True
+show_rain = False
+show_full_msg = False
 show_forecast = True
 refresh_rate = 120
 # initialize our led dictionary

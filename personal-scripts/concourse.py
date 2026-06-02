@@ -153,7 +153,7 @@ monitoredPrJobs = [
     "pr-merge",                                 #5
     "docker-build-aoa-concourse",               #6
     "docker-build-aoa-concourse-postgresql",    #7
-    "2docker-build-aoa-concourse-containers"    #8
+    "docker-build-aoa-concourse-containers"     #8
     ]
 monitoredGNSJobs = [
     "build-and-test-develop",                   #0

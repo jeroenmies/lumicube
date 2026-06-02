@@ -42,7 +42,7 @@ monitoredPipeLines = [
     "wp-all-osraoa", "wp-tasks-osraoa", "dummy", "aoa-docker-osraoa", "dummy", "aoa-gns-osrpraoa",
     "dummy", "aoa-gdr-proxy-osraoa", "aoa-common-java-osrpraoa", "aoa-gateway-osrpraoa",
     "aoa-usermanagement-osrpraoa", "wp-draat-osrpraoa", "wp-file-store-osrpraoa",
-    "wp-projectmanagement-osrpraoa", "wp-project-app-osrpraoa", "wp-winfrabase-osrpraoa"
+    "wp-projectmanagement-osrpraoa", "wp-project-app-osrpraoa", "wp-winfrabase-osrpraoa", "wp-ivon-osrpraoa"
 ]
 
 monitoredSpecial = [
@@ -54,7 +54,7 @@ monitoredJobs = [
 ]
 
 monitoredPrJobs = [
-    "recreate-dependabot-pull-requests", "pr-pre-filter", "pr-pre-build-and-test", "pr-build-and-test", "pr-e2e-test", "pr-merge", "docker-build-aoa-concourse", "docker-build-aoa-concourse-postgresql", "2docker-build-aoa-concourse-containers"
+    "recreate-dependabot-pull-requests", "pr-pre-filter", "pr-pre-build-and-test", "pr-build-and-test", "pr-e2e-test", "pr-merge", "docker-build-aoa-concourse", "docker-build-aoa-concourse-postgresql", "docker-build-aoa-concourse-containers"
 ]
 
 monitoredGNSJobs = [
@@ -76,80 +76,139 @@ def animate():
     global alternate
     if isError:
         error_colour = red if alternate else black
-        display.set_panel('top', [[error_colour] * 8] * 8)
+        display.set_panel("right", [[error_colour] * 8] * 8)
     else:
         for (x, y), status_dict in data.items():
-            current_colour = getColour(status_dict['next'] if 'next' in status_dict and alternate else status_dict['current'])
+            if "next" in status_dict:
+                current_colour = getColour(status_dict["next"] if alternate else status_dict["current"])
+            else:
+                current_colour = getColour(status_dict["current"])
             display.set_led(x, y, current_colour)
+            
     alternate = not alternate
 
 def get_job_coordinates(pipeline_name, job_name):
-    """Berekent de juiste (x, y) coördinaten voor de LumiCube matrix."""
-    # Handmatige override voor de 3 specifieke aoa-docker jobs op (6, 13-15)
-    if pipeline_name.startswith("aoa-docker"):
+    """
+    Berekent exact de (x, y) coördinaten voor de LumiCube volgens DOCUMENTATION.md.
+    - Links (x: 0-7, y: 0-7): wp-all-osraoa
+    - Rechts (x: 0-7, y: 8-15): wp-tasks-osraoa & aoa-docker (strak in kolom 7)
+    - Boven (x: 8-15, y: 0-7): De 8 hoofd -osrpraoa backend pipelines
+    """
+    p_name = pipeline_name.lower()
+
+    # ==========================================================================
+    # 1. RECHTER PANEEL (x: 0-7, y: 8-15) -> Speciale Taken & Docker
+    # ==========================================================================
+    if "aoa-docker" in p_name:
+        # Docker strak onder elkaar in de uiterst rechter kolom (kolom 7)
         docker_coordinates = {
-            "docker-build-aoa-concourse": (6, 13),
-            "docker-build-aoa-concourse-postgresql": (6, 14),
-            "2docker-build-aoa-concourse-containers": (6, 15)
+            "docker-build-aoa-concourse": (7, 13),           # DOCKER-A (onder)
+            "docker-build-aoa-concourse-postgresql": (7, 14), # DOCKER-B (midden)
+            "docker-build-aoa-concourse-containers": (7, 15)  # DOCKER-C (boven)
         }
-        if job_name in docker_coordinates:
-            return docker_coordinates[job_name]
+        return docker_coordinates.get(job_name)
 
-    # Bepaal de standaard xIndex op basis van de hoofdlijst
-    if pipeline_name not in monitoredPipeLines:
-        return None
-    x = monitoredPipeLines.index(pipeline_name)
-    y = 0
-
-    # Berekening op basis van pipeline-type
-    if pipeline_name.startswith("aoa-docker"):
-        y = monitoredPrJobs.index(job_name) + 8 if job_name in monitoredPrJobs else 0
-        
-    elif pipeline_name.startswith("wp-tasks"):
+    if "wp-tasks" in p_name:
         if job_name in monitoredSpecial:
             idx = monitoredSpecial.index(job_name)
-            y = (idx % 8) + 8
-            x = idx // 8
             
-    elif pipeline_name.startswith("wp-all"):
-        if job_name in monitoredJobs:
-            idx = monitoredJobs.index(job_name)
-            y = idx % 8
-            x = idx // 8
-            
-    elif pipeline_name.startswith("aoa-gdr-proxy") and job_name.startswith("create"):
-        y = 8
-        
-    elif pipeline_name.startswith("aoa-gdr-proxy"):
-        y = (monitoredJobs.index(job_name) % 8) + 5 if job_name in monitoredJobs else 0
-        
-    elif pipeline_name.startswith("aoa-gns"):
-        if job_name in monitoredGNSPrJobs:
-            y = monitoredGNSPrJobs.index(job_name) + 8
-        elif job_name in monitoredGNSJobs:
-            y = monitoredGNSJobs.index(job_name) + 8
-        else:
-            return None
-        if y > 14:
-            x += 1
-            y -= 2
-            
-    elif job_name in monitoredPrJobs and pipeline_name.endswith("osrpraoa"):
-        y = monitoredPrJobs.index(job_name)
-        
-    elif job_name in monitoredJobs and pipeline_name.endswith("osraoa"):
-        y = monitoredJobs.index(job_name)
-        
-    else:
+            # Groep 1: Shutdowns (y: 8)
+            if idx < 3:
+                return (idx, 8)
+                
+            # Groep 2: E2E Triggers & Stoppen (Aaneengesloten op y: 9 t/m 12)
+            elif 7 <= idx <= 10:
+                return (3 + (idx - 7), 9)
+            elif 12 <= idx <= 15:
+                return (3 + (idx - 12), 10)
+            elif 16 <= idx <= 19:
+                return (3 + (idx - 16), 11)
+            elif 20 <= idx <= 23:
+                return (3 + (idx - 20), 12)
+                
+            # Groep 3: Deploys & Rebuilds (Strak in kolom 0 en 1)
+            elif idx == 24: return (0, 14)  # deploy-pipeline-webportal-tasks
+            elif idx == 25: return (1, 14)  # deploy-pipelines
+            elif idx == 27: return (0, 15)  # stop-pr-pipelines
+            elif idx == 28: return (1, 15)  # start-pr-pipelines
+            elif idx == 30: return (0, 13)  # redeploy-apps
+            elif idx == 31: return (1, 13)  # rebuild-apps
+                
+            # Groep 4: GNS Cleardb (Rij 14) & GNS Tests (Rij 15)
+            # Exact uitgelijnd volgens de documentatie-matrix!
+            elif 32 <= idx <= 34:  # gns-cleardb (ontwikkel, test, acceptatie)
+                return (3 + (idx - 32), 14) # Kolom 3, 4, 5 op rij 14
+            elif 36 <= idx <= 39:  # test-gns (ontwikkel, test, acc, prod)
+                return (3 + (idx - 36), 15) # Kolom 3, 4, 5, 6 op rij 15
+                
         return None
 
-    return x, y
+    # ==========================================================================
+    # 2. BOVENSTE PANEEL (Top) -> STATISCH BINNEN x: 8-15 en y: 0-7
+    # ==========================================================================
+    if "osrpraoa" in p_name or any(base in p_name for base in ["aoa-gns", "aoa-common", "aoa-gateway", "aoa-user", "wp-draat", "wp-file", "wp-project"]):
+        
+        osrpraoa_mapping = [
+            "aoa-gns",              # x: 8
+            "aoa-common",           # x: 9
+            "aoa-gateway",          # x: 10
+            "aoa-usermanagement",   # x: 11
+            "wp-draat",             # x: 12
+            "wp-file-store",        # x: 13
+            "wp-projectmanagement", # x: 14
+            "wp-project-app"        # x: 15
+        ]
+        
+        xIndex = 15
+        for i, base_name in enumerate(osrpraoa_mapping):
+            if base_name in p_name:
+                xIndex = 8 + i
+                break
+
+        y_idx = 0
+        if job_name in monitoredPrJobs:
+            y_idx = min(monitoredPrJobs.index(job_name), 7)
+        elif job_name in monitoredJobs:
+            y_idx = min(monitoredJobs.index(job_name), 7)
+            
+        return (xIndex, y_idx)
+
+    # ==========================================================================
+    # 3. LINKER PANEEL (x: 0-7, y: 0-7) -> wp-all-osraoa
+    # ==========================================================================
+    if "wp-all" in p_name or "osraoa" in p_name:
+        if job_name in monitoredJobs:
+            idx = monitoredJobs.index(job_name)
+            if idx < 8:
+                return (0, idx)
+            elif idx < 16:
+                return (1, idx - 8)
+            elif idx < 24:
+                return (2, idx - 16)
+            elif idx < 32:
+                return (3, idx - 24)
+            elif idx < 40:
+                return (4, idx - 32)
+            elif idx < 48:
+                return (5, idx - 40)
+            elif idx < 56:
+                return (6, idx - 48)
+            else:
+                return (7, min(idx - 56, 7))
+
+    return None
 
 def process_jobs(jobsJson):
-    """Verwerkt de JSON-input en stuurt de statussen door naar de datamatrix."""
+    """Verwerkt de JSON-input en ververst de datamatrix schoon."""
     global data, pipelines
     if not jobsJson:
         return False
+        
+    data.clear() 
+    try:
+        display.set_all(black)
+    except Exception:
+        pass
         
     for job in jobsJson:
         pipelineName = job.get("pipeline_name", "")
@@ -161,7 +220,7 @@ def process_jobs(jobsJson):
             
         xIndex, yIndex = coords
 
-        # Strakke grenscontrole voor de LumiCube matrix (0 t/m 15)
+        # Strakke grenscontrole hersteld naar de fysieke LumiCube (0 t/m 15)
         if not (0 <= xIndex <= 15 and 0 <= yIndex <= 15):
             continue
 
@@ -179,6 +238,7 @@ def process_jobs(jobsJson):
         pipes[yIndex] = status
 
     return True
+
 
 def getData():
     """Haalt bestanden op van Slack, pakt de nieuwste zip uit en verwerkt de JSON."""

@@ -27,7 +27,7 @@ monitoredPipeLines = [
     "aoa-docker-osraoa",
     "dummy",
     "aoa-gns-osrpraoa",
-    "aoa-gns-osraoa",
+    "dummy",
     "aoa-gdr-proxy-osraoa",
     "aoa-common-java-osrpraoa",
     "aoa-gateway-osrpraoa",
@@ -42,15 +42,15 @@ monitoredSpecial = [
     "rdy-to-shutdown-environments",
     "toggle-rdy-to-shutdown-environments",
     "manual-trigger",
-    "webportal-sig-upload-daily",
-    "gns-sig-upload-daily",
-    "bim-provesy-upload-daily",
+    "dummy",
+    "dummy",
+    "dummy",
     "dummy",
     "concourse-monitor",
     "stop-e2e",
     "stop-e2e-pr",
     "stop-e2e-develop",
-    "stop-smoketest",
+    "dummy",
     "stop-ontwikkel",
     "stop-test",
     "stop-acceptance",
@@ -145,35 +145,35 @@ monitoredJobs = [
     "deploy-production"
     ]
 monitoredPrJobs = [
-    "recreate-dependabot-pull-requests",    #0
-    "pr-pre-filter",                        #1
-    "pr-pre-build-and-test",                #2
-    "pr-build-and-test",                    #3
-    "pr-e2e-test",                          #4
-    "pr-merge",                             #5
-    "docker-build-aoa-concourse",           #6
-    "docker-build-aoa-e2e",                 #7
-    "2docker-build-aoa-concourse-containers" #8
+    "recreate-dependabot-pull-requests",        #0
+    "pr-pre-filter",                            #1
+    "pr-pre-build-and-test",                    #2
+    "pr-build-and-test",                        #3
+    "pr-e2e-test",                              #4
+    "pr-merge",                                 #5
+    "docker-build-aoa-concourse",               #6
+    "docker-build-aoa-concourse-postgresql",    #7
+    "2docker-build-aoa-concourse-containers"    #8
     ]
 monitoredGNSJobs = [
-    "build-and-test-develop",               #0
-    "deploy-ontwikkel",                     #1
-    "build-and-test",                       #2
-    "smoke-test",                           #3
-    "e2e-test",                             #4
-    "deploy-e2e-pr",                        #5
-    "publish-contracts",                    #6
-    "deploy-test",                          #7
-    "deploy-acceptance",                    #8
-    "deploy-production"                     #9
+    "build-and-test-develop",                   #0
+    "deploy-ontwikkel",                         #1
+    "build-and-test",                           #2
+    "smoke-test",                               #3
+    "e2e-test",                                 #4
+    "deploy-e2e-pr",                            #5
+    "publish-contracts",                        #6
+    "deploy-test",                              #7
+    "deploy-acceptance",                        #8
+    "deploy-production"                         #9
     ]                    
 monitoredGNSPrJobs = [
-    "recreate-dependabot-pull-requests",    #0
-    "pr-pre-build-and-test",                #1
-    "pr-build-and-test",                    #2
-    "pr-smoke-test",                        #3
-    "pr-e2e-test",                          #4
-    "pr-merge"                              #5
+    "recreate-dependabot-pull-requests",        #0
+    "pr-pre-build-and-test",                    #1
+    "pr-build-and-test",                        #2
+    "pr-smoke-test",                            #3
+    "pr-e2e-test",                              #4
+    "pr-merge"                                  #5
     ]                             
 checkDelay = 10
 checkDelayCount = checkDelay

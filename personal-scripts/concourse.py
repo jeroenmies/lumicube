@@ -50,7 +50,75 @@ monitoredSpecial = [
 ]
 
 monitoredJobs = [
-    "build-and-test-develop-draat", "build-and-test-develop-file-store", "build-and-test-develop-gateway", "build-and-test-develop-project-app", "build-and-test-develop-ivon", "build-and-test-develop-projectmanagement", "build-and-test-develop-usermanagement", "build-and-test-develop-winfrabase", "build-and-test-develop-winfrabase-converter", "deploy-develop-draat", "deploy-develop-file-store", "deploy-develop-gateway", "deploy-develop-project-app", "deploy-develop-ivon", "deploy-develop-projectmanagement", "deploy-develop-usermanagement", "deploy-develop-winfrabase", "deploy-develop-winfrabase-converter", "deploy-e2e-develop-draat", "deploy-e2e-develop-file-store", "deploy-e2e-develop-gateway", "deploy-e2e-develop-project-app", "deploy-e2e-develop-ivon", "deploy-e2e-develop-projectmanagement", "deploy-e2e-develop-usermanagement", "deploy-e2e-develop-winfrabase", "deploy-e2e-develop-winfrabase-converter", "trigger-e2e-develop", "webportal-e2e-develop", "dummy", "dummy", "redeploy-ontwikkel", "build-and-test-draat", "build-and-test-file-store", "build-and-test-gateway", "build-and-test-project-app", "build-and-test-ivon", "build-and-test-projectmanagement", "build-and-test-usermanagement", "build-and-test-winfrabase", "build-and-test-winfrabase-converter", "deploy-e2e-draat", "deploy-e2e-file-store", "deploy-e2e-gateway", "deploy-e2e-project-app", "deploy-e2e-ivon", "deploy-e2e-projectmanagement", "deploy-e2e-usermanagement", "deploy-e2e-winfrabase", "deploy-e2e-winfrabase-converter", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "trigger-e2e", "webportal-e2e", "deploy-pr", "deploy-test", "deploy-acceptance", "deploy-production"
+    "build-and-test-develop-draat", 
+    "build-and-test-develop-file-store", 
+    "build-and-test-develop-gateway", 
+    "build-and-test-develop-ivon", 
+    "build-and-test-develop-project-app", 
+    "build-and-test-develop-projectmanagement", 
+    "build-and-test-develop-usermanagement", 
+    "build-and-test-develop-winfrabase",
+    
+    "deploy-develop-draat", 
+    "deploy-develop-file-store", 
+    "deploy-develop-gateway", 
+    "deploy-develop-ivon", 
+    "deploy-develop-project-app", 
+    "deploy-develop-projectmanagement", 
+    "deploy-develop-usermanagement",
+    "deploy-develop-winfrabase", 
+
+    "deploy-e2e-develop-draat", 
+    "deploy-e2e-develop-file-store", 
+    "deploy-e2e-develop-gateway", 
+    "deploy-e2e-develop-ivon", 
+    "deploy-e2e-develop-project-app", 
+    "deploy-e2e-develop-projectmanagement",
+    "deploy-e2e-develop-usermanagement", 
+    "deploy-e2e-develop-winfrabase",
+    
+    "trigger-e2e-develop", 
+    "webportal-e2e-develop", 
+    "dummy", 
+    "dummy", 
+    "dummy", 
+    "dummy", 
+    "dummy", 
+    "redeploy-ontwikkel",
+    
+    "build-and-test-draat", 
+    "build-and-test-file-store", 
+    "build-and-test-gateway", 
+    "build-and-test-ivon", 
+    "build-and-test-project-app", 
+    "build-and-test-projectmanagement", 
+    "build-and-test-usermanagement", 
+    "build-and-test-winfrabase", 
+    
+    "deploy-e2e-draat", 
+    "deploy-e2e-file-store", 
+    "deploy-e2e-gateway", 
+    "deploy-e2e-ivon", 
+    "deploy-e2e-project-app", 
+    "deploy-e2e-projectmanagement", 
+    "deploy-e2e-usermanagement", 
+    "deploy-e2e-winfrabase", 
+
+    "dummy", 
+    "dummy", 
+    "dummy", 
+    "build-and-test-develop-winfrabase-converter", 
+    "deploy-develop-winfrabase-converter", 
+    "deploy-e2e-develop-winfrabase-converter", 
+    "build-and-test-winfrabase-converter", 
+    "deploy-e2e-winfrabase-converter", 
+    
+    "trigger-e2e", 
+    "webportal-e2e", 
+    "deploy-pr", 
+    "deploy-test", 
+    "deploy-acceptance", 
+    "deploy-production"
 ]
 
 monitoredPrJobs = [

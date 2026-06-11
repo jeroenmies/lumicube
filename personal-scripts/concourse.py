@@ -147,20 +147,40 @@ ververs_alles = True  # Start op True voor de eerste run
 slow_counter = 0
 alternate_slow = True
 
+heartbeat_counter = 0
+
+carrousel_counter = 0
+wissel_index = 0  # 0 = gns, 1 = common, 2 = draat
+
 def animate():
-    global alternate, alternate_slow, slow_counter, vorige_kleuren, geluid_afgespeeld, ververs_alles
+    global alternate, alternate_slow, slow_counter, vorige_kleuren, geluid_afgespeeld, ververs_alles, heartbeat_counter
+    global carrousel_counter, wissel_index
     
-    # Update de langzame teller voor blauwe leds (2 loops van 0.5s = 1 seconde)
+    # 1. Update de trage timer voor blauwe leds (om de seconde)
     slow_counter += 1
     if slow_counter >= 2:
         alternate_slow = not alternate_slow
         slow_counter = 0
+        
+    # 2. Update de carrousel timer (wisselt elke seconde van pipeline op x: 15)
+    carrousel_counter += 1
+    if carrousel_counter >= 2:
+        oude_wissel_index = wissel_index
+        wissel_index = (wissel_index + 1) % 3
+        carrousel_counter = 0
+        
+        # Wis de uiterst rechtse kolom (x: 15, y: 0-7) bij een wissel om ghost-kleuren te voorkomen
+        if oude_wissel_index != wissel_index:
+            for y_clear in range(8):
+                if vorige_kleuren.get((15, y_clear)) != black:
+                    display.set_led(15, y_clear, black)
+                    vorige_kleuren[(15, y_clear)] = black
     
     if isError:
         error_colour = red if alternate else black
         display.set_panel("right", [[error_colour] * 8] * 8)
-        vorige_kleuren.clear()  # Reset LED geheugen bij error status
-        ververs_alles = True    # Dwing verversing zodra de error weggaat
+        vorige_kleuren.clear()
+        ververs_alles = True
         
         if not geluid_afgespeeld:
             try:
@@ -171,17 +191,18 @@ def animate():
                 pass
             geluid_afgespeeld = True
     else:
-        # GEFIXT: Als we net uit een error-situatie komen, poetsen we de cache EN het paneel schoon!
+        geluid_afgespeeld = False
+        
         if geluid_afgespeeld:
             try:
                 display.set_panel("right", [[0x000000] * 8] * 8)
-                # FIX: Wis de cache zodat OUDE rode fout-pixels direct overschreven worden met de echte status!
                 vorige_kleuren.clear()
                 ververs_alles = True
             except Exception:
                 pass
             geluid_afgespeeld = False
         
+        # 3. Teken alle jobs
         for (x, y), status_dict in data.items():
             status = str(status_dict.get("current", "")).lower()
             
@@ -194,53 +215,87 @@ def animate():
             else:
                 current_colour = getColour(status_dict["current"])
             
-            # Als ververs_alles True is, sturen we de led ALTIJD aan
-            if ververs_alles or vorige_kleuren.get((x, y)) != current_colour:
-                display.set_led(x, y, current_colour)
-                vorige_kleuren[(x, y)] = current_colour
+            # --- CARROUSEL PROJECTIE LOGICA VOOR X: 15 ---
+            target_x = x
+            
+            # GEFIXT: Logica herschreven zonder haken om verzendfouten te voorkomen
+            if x == 16 or x == 17 or x == 18:
+                # gns (16) mag op index 0, common (17) op index 1, draat (18) op index 2
+                if (x == 16 and wissel_index == 0) or (x == 17 and wissel_index == 1) or (x == 18 and wissel_index == 2):
+                    target_x = 15  # Projecteer hem ijskoud op de uiterst rechtse kolom!
+                else:
+                    continue  # Deze pipeline is nu even niet aan de beurt, sla over!
+
+            # Update de berekende target-led
+            if ververs_alles or vorige_kleuren.get((target_x, y)) != current_colour:
+                display.set_led(target_x, y, current_colour)
+                vorige_kleuren[(target_x, y)] = current_colour
                 
-        # Reset de verversingsvlag na de eerste volledige loop
+        # 4. GEZONDHEIDS-HARTZLAG OP (7, 8)
+        heartbeat_counter = (heartbeat_counter + 1) % 4
+        if heartbeat_counter == 0:
+            heartbeat_colour = 0x221133
+        elif heartbeat_counter == 1 or heartbeat_counter == 3:
+            heartbeat_colour = 0x553377
+        else:
+            heartbeat_colour = 0xaa77dd
+            
+        display.set_led(7, 8, heartbeat_colour)
+        vorige_kleuren[(7, 8)] = heartbeat_colour
+                    
         ververs_alles = False
             
     alternate = not alternate
 
 def process_jobs(jobsJson):
-    """Verwerkt de JSON-input, synchroniseert de cache en activeert de prioriteit-pauzes."""
+    """Verwerkt de JSON-input en mapt de pauze-indicatoren exact synchroon met get_job_coordinates."""
     global data, pipelines, ververs_alles, vorige_kleuren
     
-    # Veiligheidscheck: zorg dat jobsJson een geldige dictionary is
     if not jobsJson or not isinstance(jobsJson, dict):
         return False
         
     tijdelijke_data = {}
     
-    # Hou bij welke kolommen (x: 8 t/m 15) een gepauzeerde pipeline hebben
-    osrpraoa_mapping = [
-        "aoa-gns", "aoa-common", "aoa-gateway", "aoa-usermanagement", 
-        "wp-draat", "wp-file-store", "wp-projectmanagement", "wp-project-app"
+    # EXACT SYNCHROON MET JOUW get_job_coordinates VOLGORDE:
+    # De 7 backend pipelines die een VASTE eigen kolom hebben op x: 8 t/m 14
+    vaste_mapping = [
+        "aoa-gateway",          # x: 8
+        "aoa-usermanagement",   # x: 9
+        "wp-file-store",        # x: 10
+        "wp-projectmanagement", # x: 11
+        "wp-project-app",       # x: 12
+        "wp-winfrabase",        # x: 13
+        "wp-ivon"               # x: 14
     ]
+    
     paused_columns = set()
     
-    # Maak de LumiCube fysiek zwart
     try:
         display.set_all(black)
-        # GEFIXT: Wis direct de cache omdat de kubus zojuist fysiek zwart is gemaakt!
-        # Dit dwingt animate() om bij de volgende tik ALLE actuele leds direct weer aan te zetten.
         vorige_kleuren.clear()  
     except Exception:
         pass
 
-    # STAP 1: Controleer de echte pipeline-pauze status via de 'pipelines' key
+    # 1. Controleer welke pipelines in Concourse op pause staan
     pipelines_lijst = jobsJson.get("pipelines", [])
     for p in pipelines_lijst:
         p_name = p.get("name", "").lower()
         if p.get("paused") == True:
-            for i, base_name in enumerate(osrpraoa_mapping):
-                if base_name in p_name:
-                    paused_columns.add(8 + i)  # Onthoud de x-kolom voor rij 6
-                    break
+            # Check A: Is het een van de 3 carrousel-pipelines?
+            if "aoa-gns" in p_name:
+                paused_columns.add(16)
+            elif "aoa-common" in p_name:
+                paused_columns.add(17)
+            elif "wp-draat" in p_name:
+                paused_columns.add(18)
+            else:
+                # Check B: Is het een van de 7 vaste pipelines? (x: 8 t/m 14)
+                for i, base_name in enumerate(vaste_mapping):
+                    if base_name in p_name:
+                        paused_columns.add(8 + i)
+                        break
 
-    # STAP 2: Loop door de echte jobs-lijst via de 'jobs' key
+    # 2. Loop door de jobs voor alle reguliere leds
     jobs_lijst = jobsJson.get("jobs", [])
     for job in jobs_lijst:
         if not isinstance(job, dict):
@@ -255,23 +310,30 @@ def process_jobs(jobsJson):
             continue
             
         xIndex, yIndex = coords
-        if not (0 <= xIndex <= 15 and 0 <= yIndex <= 15):
+
+        if not (0 <= xIndex <= 18 and 0 <= yIndex <= 15):
             continue
 
         pipes = pipelines.setdefault(pipelineName, {})
         if (xIndex, yIndex) not in tijdelijke_data:
             tijdelijke_data[xIndex, yIndex] = {}
 
-        # Sla op of de job individueel gepauzeerd is (Blauwe jobs)
         if job.get("paused") == True:
             tijdelijke_data[xIndex, yIndex]["current"] = "paused"
             pipes[yIndex] = "paused"
             
-            # Als een job handmatig gepauzeerd is, mag rij 6 ook mee-knipperen
-            for i, base_name in enumerate(osrpraoa_mapping):
-                if base_name in p_name:
-                    paused_columns.add(8 + i)
-                    break
+            # Schakel ook bij een individuele gepauzeerde job de juiste rij 6 indicator in
+            if "aoa-gns" in p_name:
+                paused_columns.add(16)
+            elif "aoa-common" in p_name:
+                paused_columns.add(17)
+            elif "wp-draat" in p_name:
+                paused_columns.add(18)
+            else:
+                for i, base_name in enumerate(vaste_mapping):
+                    if base_name in p_name:
+                        paused_columns.add(8 + i)
+                        break
         else:
             if "next_build" in job and job["next_build"].get("status") == "started":
                 tijdelijke_data[xIndex, yIndex]["next"] = "started"
@@ -282,13 +344,13 @@ def process_jobs(jobsJson):
             pipes[yIndex] = status
 
     # ==========================================================================
-    # STAP 3: Activeer rij 6 voor de gepauzeerde Concourse pipelines
-    # Dit overschrijft eventuele rondslingerende foutieve (rode) pixels op rij 6!
+    # 3. ABSOLUTE PRIORITEIT VOOR RIJ 6:
+    # We zetten de pauze-indicatoren nu op de exact gecorrigeerde kolommen weg!
+    # De carrousel-indicatoren (16, 17, 18) worden hierdoor automatisch mee-gewisseld.
     # ==========================================================================
     for x_pauze in paused_columns:
         tijdelijke_data[(x_pauze, 6)] = {"current": "paused"}
 
-    # Wissel de matrix om en activeer de verversing
     data = tijdelijke_data
     ververs_alles = True
     return True
@@ -352,25 +414,37 @@ def get_job_coordinates(pipeline_name, job_name):
     # ==========================================================================
     # 2. BOVENSTE PANEEL (Top) -> STATISCH BINNEN x: 8-15 en y: 0-7
     # ==========================================================================
-    if "osrpraoa" in p_name or any(base in p_name for base in ["aoa-gns", "aoa-common", "aoa-gateway", "aoa-user", "wp-draat", "wp-file", "wp-project"]):
+    if "osrpraoa" in p_name or any(base in p_name for base in ["aoa-gns", "aoa-common", "aoa-gateway", "aoa-user", "wp-draat", "wp-file-store", "wp-projectmanagement", "wp-project-app", "wp-winfrabase", "wp-ivon"]):
         
-        osrpraoa_mapping = [
-            "aoa-gns",              # x: 8
-            "aoa-common",           # x: 9
-            "aoa-gateway",          # x: 10
-            "aoa-usermanagement",   # x: 11
-            "wp-draat",             # x: 12
-            "wp-file-store",        # x: 13
-            "wp-projectmanagement", # x: 14
-            "wp-project-app"        # x: 15
+        # De 7 backend pipelines die een VASTE, eigen kolom krijgen (x: 8 t/m 14)
+        vaste_mapping = [
+            "aoa-gateway",          # x: 8
+            "aoa-usermanagement",   # x: 9
+            "wp-file-store",        # x: 10
+            "wp-projectmanagement", # x: 11
+            "wp-project-app",       # x: 12  (Opgeschoven van 15 naar 12!)
+            "wp-winfrabase",        # x: 13  (Nieuw in beeld!)
+            "wp-ivon"               # x: 14  (Nieuw in beeld!)
         ]
         
-        xIndex = 15
-        for i, base_name in enumerate(osrpraoa_mapping):
+        xIndex = None
+        for i, base_name in enumerate(vaste_mapping):
             if base_name in p_name:
                 xIndex = 8 + i
                 break
 
+        # Als het niet in de vaste kolommen zit, is het een van de 3 carrousel-pipelines.
+        # We geven ze een virtuele x-coördinaat mee buiten het grid (16, 17, 18).
+        if xIndex is None:
+            if "aoa-gns" in p_name:
+                xIndex = 16
+            elif "aoa-common" in p_name:
+                xIndex = 17
+            elif "wp-draat" in p_name:
+                xIndex = 18
+            else:
+                xIndex = 8  # Veilige fallback
+            
         y_idx = 0
         if job_name in monitoredPrJobs:
             y_idx = min(monitoredPrJobs.index(job_name), 7)
@@ -378,7 +452,7 @@ def get_job_coordinates(pipeline_name, job_name):
             y_idx = min(monitoredJobs.index(job_name), 7)
             
         return (xIndex, y_idx)
-
+        
     # ==========================================================================
     # 3. LINKER PANEEL (x: 0-7, y: 0-7) -> wp-all-osraoa
     # ==========================================================================
@@ -477,12 +551,12 @@ def getData():
             old_file_id = old_file.get('id')
             if old_file_id:
                 try:
-                    # requests.post(
-                    #     apiBase + 'files.delete',
-                    #     headers={'Authorization': accesToken, 'Content-Type': 'application/json'},
-                    #     json={'file': old_file_id},
-                    #     timeout=5
-                    # )
+                    requests.post(
+                        apiBase + 'files.delete',
+                        headers={'Authorization': accesToken, 'Content-Type': 'application/json'},
+                        json={'file': old_file_id},
+                        timeout=5
+                    )
                     print(f"Oud Slack-bestand verwijderd: {old_file_id}")
                 except Exception as e:
                     print(f"Fout bij verwijderen van bestand {old_file_id}: {e}")

@@ -38,6 +38,27 @@ COLOUR_MAP = {
 def getColour(status_string):
     return COLOUR_MAP.get(status_string, white)
 
+data = {}
+pipelines = {}
+isError = False
+
+vorige_kleuren = {}
+geluid_afgespeeld = False 
+ververs_alles = True  # Start op True voor de eerste run
+
+carrousel_counter = 0
+wissel_index = 0  # 0 = gns, 1 = common, 2 = draat
+
+# --- GLOBALE ANIMATIE VARIABELEN
+alternate = True        # Voor de 'next' wissels (0.5s)
+alternate_yellow = True # NIEUW: Voor started/geel (2.0s - factor 4 langzamer)
+alternate_slow = True   # Voor paused/blauw (1.0s)
+
+slow_counter = 0        # Teller voor blauw
+slow_counter_yellow = 0 # NIEUW: Teller voor geel
+heartbeat_timer = 0     # NIEUW: Vertrager voor de hartslag (1 stap per seconde)
+heartbeat_counter = 0   # De 12 paarsstappen
+
 # Gemonitorde data configuratie (essentieel voor de juiste x/y positiebepaling)
 monitoredPipeLines = [
     "wp-all-osraoa", "wp-tasks-osraoa", "dummy", "aoa-docker-osraoa", "dummy", "aoa-gns-osrpraoa",
@@ -134,42 +155,32 @@ monitoredGNSPrJobs = [
     "recreate-dependabot-pull-requests", "pr-pre-build-and-test", "pr-build-and-test", "pr-smoke-test", "pr-e2e-test", "pr-merge"
 ]
 
-data = {}
-pipelines = {}
-alternate = True
-isError = False
-
-vorige_kleuren = {}
-geluid_afgespeeld = False 
-ververs_alles = True  # Start op True voor de eerste run
-
-# Extra tellers voor het rustige blauwe knipperen (1 seconde interval)
-slow_counter = 0
-alternate_slow = True
-
-heartbeat_counter = 0
-
-carrousel_counter = 0
-wissel_index = 0  # 0 = gns, 1 = common, 2 = draat
-
 def animate():
-    global alternate, alternate_slow, slow_counter, vorige_kleuren, geluid_afgespeeld, ververs_alles, heartbeat_counter
+    global alternate, alternate_yellow, alternate_slow, slow_counter, slow_counter_yellow
+    global heartbeat_timer, heartbeat_counter, vorige_kleuren, geluid_afgespeeld, ververs_alles
     global carrousel_counter, wissel_index
     
-    # 1. Update de trage timer voor blauwe leds (om de seconde)
+    # 1. Update de trage timer voor BLAUWE leds (wisselt elke 1.0 seconde)
     slow_counter += 1
     if slow_counter >= 2:
         alternate_slow = not alternate_slow
         slow_counter = 0
         
-    # 2. Update de carrousel timer (wisselt elke seconde van pipeline op x: 15)
+    # 2. Update de extra trage timer voor GELE leds (wisselt elke 2.0 seconden -> factor 4 langzamer)
+    slow_counter_yellow += 1
+    if slow_counter_yellow >= 4:
+        alternate_yellow = not alternate_yellow
+        slow_counter_yellow = 0
+        
+    # 3. Update de carrousel timer (wisselt elke seconde van pipeline op x: 15)
     carrousel_counter += 1
     if carrousel_counter >= 2:
         oude_wissel_index = wissel_index
         wissel_index = (wissel_index + 1) % 3
         carrousel_counter = 0
         
-        # Wis de uiterst rechtse kolom (x: 15, y: 0-7) bij een wissel om ghost-kleuren te voorkomen
+        # GEFIXT: Wis kolom 15 ALLEEN als er écht een wissel naar een andere pipeline plaatsvindt!
+        # Dit voorkomt dat de carrousel tussentijds de trage gele knipper-cyclus verstoort.
         if oude_wissel_index != wissel_index:
             for y_clear in range(8):
                 if vorige_kleuren.get((15, y_clear)) != black:
@@ -202,50 +213,69 @@ def animate():
                 pass
             geluid_afgespeeld = False
         
-        # 3. Teken alle jobs
+        # 4. Teken alle jobs (Met behoud van de achtergrondkleur bij het gele knipperen)
         for (x, y), status_dict in data.items():
             status = str(status_dict.get("current", "")).lower()
+            next_status = str(status_dict.get("next", "")).lower()
             
-            if "next" in status_dict:
+            # CHECK A: Is de hoofdstatus OF de opvolgende status "started" (geel)?
+            if status == "started" or next_status == "started":
+                # GEFIXT: Als alternate_yellow False is, toon dan de vorige kleur (groen of rood) 
+                # in plaats van zwart te worden!
+                current_colour = startedColour if alternate_yellow else getColour(status_dict.get("current"))
+                
+            # CHECK B: Is er een andere opvolgende status? (Knipper met de normale alternate)
+            elif "next" in status_dict:
                 current_colour = getColour(status_dict["next"] if alternate else status_dict["current"])
-            elif status == "started":
-                current_colour = startedColour if alternate else black
+                
+            # CHECK C: Is de status gepauzeerd (blauw)? (Knipper met alternate_slow naar zwart)
             elif status == "paused":
                 current_colour = pausedColour if alternate_slow else black
+                
+            # CHECK D: Stabiele statussen (groen / rood)
             else:
                 current_colour = getColour(status_dict["current"])
             
             # --- CARROUSEL PROJECTIE LOGICA VOOR X: 15 ---
             target_x = x
-            
-            # GEFIXT: Logica herschreven zonder haken om verzendfouten te voorkomen
             if x == 16 or x == 17 or x == 18:
-                # gns (16) mag op index 0, common (17) op index 1, draat (18) op index 2
                 if (x == 16 and wissel_index == 0) or (x == 17 and wissel_index == 1) or (x == 18 and wissel_index == 2):
-                    target_x = 15  # Projecteer hem ijskoud op de uiterst rechtse kolom!
+                    target_x = 15
                 else:
-                    continue  # Deze pipeline is nu even niet aan de beurt, sla over!
+                    continue
 
-            # Update de berekende target-led
             if ververs_alles or vorige_kleuren.get((target_x, y)) != current_colour:
                 display.set_led(target_x, y, current_colour)
                 vorige_kleuren[(target_x, y)] = current_colour
                 
-        # 4. GEZONDHEIDS-HARTZLAG OP (7, 8)
-        heartbeat_counter = (heartbeat_counter + 1) % 4
-        if heartbeat_counter == 0:
-            heartbeat_colour = 0x221133
-        elif heartbeat_counter == 1 or heartbeat_counter == 3:
-            heartbeat_colour = 0x553377
-        else:
-            heartbeat_colour = 0xaa77dd
+        # ==========================================================================
+        # 5. GEZONDHEIDS-HARTZLAG OP (7, 8) - 12 SECONDEN CYCLUS
+        # ==========================================================================
+        heartbeat_timer += 1
+        if heartbeat_timer >= 2:
+            heartbeat_counter = (heartbeat_counter + 1) % 12
+            heartbeat_timer = 0
             
-        display.set_led(7, 8, heartbeat_colour)
-        vorige_kleuren[(7, 8)] = heartbeat_colour
+            if heartbeat_counter == 0 or heartbeat_counter == 6:
+                heartbeat_colour = 0x000000
+            elif heartbeat_counter == 1 or heartbeat_counter == 11:
+                heartbeat_colour = 0x220044
+            elif heartbeat_counter == 2 or heartbeat_counter == 10:
+                heartbeat_colour = 0x5511aa
+            elif heartbeat_counter == 3 or heartbeat_counter == 9:
+                heartbeat_colour = 0x8822ee
+            elif heartbeat_counter == 4 or heartbeat_counter == 8:
+                heartbeat_colour = 0xbb33ff
+            else:
+                heartbeat_colour = 0x660099
+                
+            display.set_led(7, 8, heartbeat_colour)
+            vorige_kleuren[(7, 8)] = heartbeat_colour
                     
         ververs_alles = False
             
     alternate = not alternate
+
 
 def process_jobs(jobsJson):
     """Verwerkt de JSON-input en mapt de pauze-indicatoren exact synchroon met get_job_coordinates."""

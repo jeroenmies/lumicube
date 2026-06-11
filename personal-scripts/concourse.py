@@ -3,6 +3,7 @@ import json
 import zipfile
 import io
 import time
+import random
 from requests.auth import HTTPBasicAuth
 
 apiBase = "https://slack.com/api/"
@@ -137,23 +138,108 @@ data = {}
 pipelines = {}
 alternate = True
 isError = False
-checkDelay = 66
-checkDelayCount = checkDelay
+
+vorige_kleuren = {}
+geluid_afgespeeld = False 
+ververs_alles = True  # Start op True voor de eerste run
+
+# Extra tellers voor het rustige blauwe knipperen (1 seconde interval)
+slow_counter = 0
+alternate_slow = True
 
 def animate():
-    global alternate
+    global alternate, alternate_slow, slow_counter, vorige_kleuren, geluid_afgespeeld, ververs_alles
+    
+    # Update de langzame teller voor blauwe leds (2 loops van 0.5s = 1 seconde)
+    slow_counter += 1
+    if slow_counter >= 2:
+        alternate_slow = not alternate_slow
+        slow_counter = 0
+    
     if isError:
         error_colour = red if alternate else black
         display.set_panel("right", [[error_colour] * 8] * 8)
+        vorige_kleuren.clear()  # Reset LED geheugen bij error status
+        ververs_alles = True    # Dwing verversing zodra de error weggaat
+        
+        if not geluid_afgespeeld:
+            try:
+                for frequency in range(400, 1200, 100):
+                    speaker.tone(frequency, 0.02)
+                speaker.say("Pipeline error detected")
+            except Exception:
+                pass
+            geluid_afgespeeld = True
     else:
+        geluid_afgespeeld = False
+        
         for (x, y), status_dict in data.items():
+            status = str(status_dict.get("current", "")).lower()
+            
             if "next" in status_dict:
                 current_colour = getColour(status_dict["next"] if alternate else status_dict["current"])
+            elif status == "started":
+                current_colour = startedColour if alternate else black
+            # NIEUW: Als de status paused is, knipper rustig blauw
+            elif status == "paused":
+                current_colour = pausedColour if alternate_slow else black
             else:
                 current_colour = getColour(status_dict["current"])
-            display.set_led(x, y, current_colour)
+            
+            # GEFIXT: Als ververs_alles True is, negeren we het geheugen en sturen we de led ALTIJD aan
+            if ververs_alles or vorige_kleuren.get((x, y)) != current_colour:
+                display.set_led(x, y, current_colour)
+                vorige_kleuren[(x, y)] = current_colour
+                
+        # Reset de verversingsvlag na de eerste volledige loop
+        ververs_alles = False
             
     alternate = not alternate
+
+def process_jobs(jobsJson):
+    """Verwerkt de JSON-input en ververst de datamatrix schoon."""
+    global data, pipelines, ververs_alles
+    if not jobsJson:
+        return False
+        
+    # GEFIXT: Bouw eerst een tijdelijke matrix op zodat animate() nooit een lege data matrix ziet
+    tijdelijke_data = {}
+    
+    for job in jobsJson:
+        pipelineName = job.get("pipeline_name", "")
+        jobName = job.get("name", "")
+        
+        coords = get_job_coordinates(pipelineName, jobName)
+        if not coords:
+            continue
+            
+        xIndex, yIndex = coords
+
+        if not (0 <= xIndex <= 15 and 0 <= yIndex <= 15):
+            continue
+
+        pipes = pipelines.setdefault(pipelineName, {})
+
+        if (xIndex, yIndex) not in tijdelijke_data:
+            tijdelijke_data[xIndex, yIndex] = {}
+
+        # NIEUW: Concourse Paused check toegevoegd
+        if job.get("paused") == True:
+            tijdelijke_data[xIndex, yIndex]["current"] = "paused"
+            pipes[yIndex] = "paused"
+        else:
+            if "next_build" in job and job["next_build"].get("status") == "started":
+                tijdelijke_data[xIndex, yIndex]["next"] = "started"
+                pipes[yIndex] = "started"
+
+            status = job["finished_build"].get("status", "pending") if "finished_build" in job else "pending"
+            tijdelijke_data[xIndex, yIndex]["current"] = status
+            pipes[yIndex] = status
+
+    # Wissel de data in één klap om en activeer de geforceerde refresh van stabiele leds
+    data = tijdelijke_data
+    ververs_alles = True
+    return True
 
 def get_job_coordinates(pipeline_name, job_name):
     """
@@ -266,47 +352,6 @@ def get_job_coordinates(pipeline_name, job_name):
 
     return None
 
-def process_jobs(jobsJson):
-    """Verwerkt de JSON-input en ververst de datamatrix schoon."""
-    global data, pipelines
-    if not jobsJson:
-        return False
-        
-    data.clear() 
-    try:
-        display.set_all(black)
-    except Exception:
-        pass
-        
-    for job in jobsJson:
-        pipelineName = job.get("pipeline_name", "")
-        jobName = job.get("name", "")
-        
-        coords = get_job_coordinates(pipelineName, jobName)
-        if not coords:
-            continue
-            
-        xIndex, yIndex = coords
-
-        # Strakke grenscontrole hersteld naar de fysieke LumiCube (0 t/m 15)
-        if not (0 <= xIndex <= 15 and 0 <= yIndex <= 15):
-            continue
-
-        pipes = pipelines.setdefault(pipelineName, {})
-
-        if (xIndex, yIndex) not in data:
-            data[xIndex, yIndex] = {}
-
-        if "next_build" in job and job["next_build"].get("status") == "started":
-            data[xIndex, yIndex]["next"] = "started"
-            pipes[yIndex] = "started"
-
-        status = job["finished_build"].get("status", "pending") if "finished_build" in job else "pending"
-        data[xIndex, yIndex]["current"] = status
-        pipes[yIndex] = status
-
-    return True
-
 
 def getData():
     """Haalt bestanden op van Slack, pakt de nieuwste zip uit en verwerkt de JSON."""
@@ -380,12 +425,12 @@ def getData():
             old_file_id = old_file.get('id')
             if old_file_id:
                 try:
-                    requests.post(
-                        apiBase + 'files.delete',
-                        headers={'Authorization': accesToken, 'Content-Type': 'application/json'},
-                        json={'file': old_file_id},
-                        timeout=5
-                    )
+                    # requests.post(
+                    #     apiBase + 'files.delete',
+                    #     headers={'Authorization': accesToken, 'Content-Type': 'application/json'},
+                    #     json={'file': old_file_id},
+                    #     timeout=5
+                    # )
                     print(f"Oud Slack-bestand verwijderd: {old_file_id}")
                 except Exception as e:
                     print(f"Fout bij verwijderen van bestand {old_file_id}: {e}")
@@ -395,16 +440,15 @@ def getData():
 
 if __name__ == "__main__":
     getData()
+    laatste_api_check = time.time()
     
     while True:
-        try:
-            animate()
-            checkDelayCount -= 1
-            if checkDelayCount <= 0:
-                getData()
-                checkDelayCount = checkDelay
-                
-            time.sleep(0.15)
-        except KeyboardInterrupt:
-            print("\nMonitor gestopt.")
-            break
+        animate()
+        
+        nu = time.time()
+        if nu - laatste_api_check >= 60.0:
+            getData()
+            laatste_api_check = nu
+            
+        time.sleep(0.5)
+        

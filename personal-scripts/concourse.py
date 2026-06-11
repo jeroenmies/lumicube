@@ -171,7 +171,16 @@ def animate():
                 pass
             geluid_afgespeeld = True
     else:
-        geluid_afgespeeld = False
+        # GEFIXT: Als we net uit een error-situatie komen, poetsen we de cache EN het paneel schoon!
+        if geluid_afgespeeld:
+            try:
+                display.set_panel("right", [[0x000000] * 8] * 8)
+                # FIX: Wis de cache zodat OUDE rode fout-pixels direct overschreven worden met de echte status!
+                vorige_kleuren.clear()
+                ververs_alles = True
+            except Exception:
+                pass
+            geluid_afgespeeld = False
         
         for (x, y), status_dict in data.items():
             status = str(status_dict.get("current", "")).lower()
@@ -180,13 +189,12 @@ def animate():
                 current_colour = getColour(status_dict["next"] if alternate else status_dict["current"])
             elif status == "started":
                 current_colour = startedColour if alternate else black
-            # NIEUW: Als de status paused is, knipper rustig blauw
             elif status == "paused":
                 current_colour = pausedColour if alternate_slow else black
             else:
                 current_colour = getColour(status_dict["current"])
             
-            # GEFIXT: Als ververs_alles True is, negeren we het geheugen en sturen we de led ALTIJD aan
+            # Als ververs_alles True is, sturen we de led ALTIJD aan
             if ververs_alles or vorige_kleuren.get((x, y)) != current_colour:
                 display.set_led(x, y, current_colour)
                 vorige_kleuren[(x, y)] = current_colour
@@ -197,36 +205,73 @@ def animate():
     alternate = not alternate
 
 def process_jobs(jobsJson):
-    """Verwerkt de JSON-input en ververst de datamatrix schoon."""
-    global data, pipelines, ververs_alles
-    if not jobsJson:
+    """Verwerkt de JSON-input, synchroniseert de cache en activeert de prioriteit-pauzes."""
+    global data, pipelines, ververs_alles, vorige_kleuren
+    
+    # Veiligheidscheck: zorg dat jobsJson een geldige dictionary is
+    if not jobsJson or not isinstance(jobsJson, dict):
         return False
         
-    # GEFIXT: Bouw eerst een tijdelijke matrix op zodat animate() nooit een lege data matrix ziet
     tijdelijke_data = {}
     
-    for job in jobsJson:
+    # Hou bij welke kolommen (x: 8 t/m 15) een gepauzeerde pipeline hebben
+    osrpraoa_mapping = [
+        "aoa-gns", "aoa-common", "aoa-gateway", "aoa-usermanagement", 
+        "wp-draat", "wp-file-store", "wp-projectmanagement", "wp-project-app"
+    ]
+    paused_columns = set()
+    
+    # Maak de LumiCube fysiek zwart
+    try:
+        display.set_all(black)
+        # GEFIXT: Wis direct de cache omdat de kubus zojuist fysiek zwart is gemaakt!
+        # Dit dwingt animate() om bij de volgende tik ALLE actuele leds direct weer aan te zetten.
+        vorige_kleuren.clear()  
+    except Exception:
+        pass
+
+    # STAP 1: Controleer de echte pipeline-pauze status via de 'pipelines' key
+    pipelines_lijst = jobsJson.get("pipelines", [])
+    for p in pipelines_lijst:
+        p_name = p.get("name", "").lower()
+        if p.get("paused") == True:
+            for i, base_name in enumerate(osrpraoa_mapping):
+                if base_name in p_name:
+                    paused_columns.add(8 + i)  # Onthoud de x-kolom voor rij 6
+                    break
+
+    # STAP 2: Loop door de echte jobs-lijst via de 'jobs' key
+    jobs_lijst = jobsJson.get("jobs", [])
+    for job in jobs_lijst:
+        if not isinstance(job, dict):
+            continue
+            
         pipelineName = job.get("pipeline_name", "")
         jobName = job.get("name", "")
+        p_name = pipelineName.lower()
         
         coords = get_job_coordinates(pipelineName, jobName)
         if not coords:
             continue
             
         xIndex, yIndex = coords
-
         if not (0 <= xIndex <= 15 and 0 <= yIndex <= 15):
             continue
 
         pipes = pipelines.setdefault(pipelineName, {})
-
         if (xIndex, yIndex) not in tijdelijke_data:
             tijdelijke_data[xIndex, yIndex] = {}
 
-        # NIEUW: Concourse Paused check toegevoegd
+        # Sla op of de job individueel gepauzeerd is (Blauwe jobs)
         if job.get("paused") == True:
             tijdelijke_data[xIndex, yIndex]["current"] = "paused"
             pipes[yIndex] = "paused"
+            
+            # Als een job handmatig gepauzeerd is, mag rij 6 ook mee-knipperen
+            for i, base_name in enumerate(osrpraoa_mapping):
+                if base_name in p_name:
+                    paused_columns.add(8 + i)
+                    break
         else:
             if "next_build" in job and job["next_build"].get("status") == "started":
                 tijdelijke_data[xIndex, yIndex]["next"] = "started"
@@ -236,7 +281,14 @@ def process_jobs(jobsJson):
             tijdelijke_data[xIndex, yIndex]["current"] = status
             pipes[yIndex] = status
 
-    # Wissel de data in één klap om en activeer de geforceerde refresh van stabiele leds
+    # ==========================================================================
+    # STAP 3: Activeer rij 6 voor de gepauzeerde Concourse pipelines
+    # Dit overschrijft eventuele rondslingerende foutieve (rode) pixels op rij 6!
+    # ==========================================================================
+    for x_pauze in paused_columns:
+        tijdelijke_data[(x_pauze, 6)] = {"current": "paused"}
+
+    # Wissel de matrix om en activeer de verversing
     data = tijdelijke_data
     ververs_alles = True
     return True

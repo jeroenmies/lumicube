@@ -163,7 +163,8 @@ def animate():
     # 1. Update de trage timer voor BLAUWE leds (wisselt elke 1.0 seconde)
     slow_counter += 1
     if slow_counter >= 2:
-        alternate_slow = not alternate_slow
+        # Volgende regel zorgt voor knippereffect
+        # alternate_slow = not alternate_slow
         slow_counter = 0
         
     # 2. Update de extra trage timer voor GELE leds (wisselt elke 2.0 seconden -> factor 4 langzamer)

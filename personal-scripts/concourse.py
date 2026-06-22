@@ -64,7 +64,7 @@ monitoredPipeLines = [
     "wp-all-osraoa", "wp-tasks-osraoa", "dummy", "aoa-docker-osraoa", "dummy", "aoa-gns-osrpraoa",
     "dummy", "aoa-gdr-proxy-osraoa", "aoa-common-java-osrpraoa", "aoa-gateway-osrpraoa",
     "aoa-usermanagement-osrpraoa", "wp-draat-osrpraoa", "wp-file-store-osrpraoa",
-    "wp-projectmanagement-osrpraoa", "wp-project-app-osrpraoa", "wp-winfrabase-osrpraoa", "wp-ivon-osrpraoa"
+    "wp-projectmanagement-osrpraoa", "wp-project-app-osrpraoa", "wp-winfrabase-osrpraoa", "wp-ivon-osrpraoa, wp-start-apps-osraoa"
 ]
 
 monitoredSpecial = [
@@ -250,7 +250,7 @@ def animate():
                 vorige_kleuren[(target_x, y)] = current_colour
                 
         # ==========================================================================
-        # 5. GEZONDHEIDS-HARTZLAG OP (7, 8) - 12 SECONDEN CYCLUS
+        # 5. HEARTBEAT OP (7, 8) - 12 SECONDEN CYCLUS
         # ==========================================================================
         heartbeat_timer += 1
         if heartbeat_timer >= 2:
@@ -389,23 +389,29 @@ def process_jobs(jobsJson):
 def get_job_coordinates(pipeline_name, job_name):
     """
     Berekent exact de (x, y) coördinaten voor de LumiCube volgens DOCUMENTATION.md.
-    - Links (x: 0-7, y: 0-7): wp-all-osraoa
-    - Rechts (x: 0-7, y: 8-15): wp-tasks-osraoa & aoa-docker (strak in kolom 7)
-    - Boven (x: 8-15, y: 0-7): De 8 hoofd -osrpraoa backend pipelines
+    - Links  (x: 0-7, y: 0-7) : wp-all-osraoa
+    - Top    (x: 0-7, y: 8-15): wp-tasks-osraoa & aoa-docker
+    - Rechts (x: 8-15, y: 0-7): De 8 hoofd -osrpraoa backend pipelines
     """
     p_name = pipeline_name.lower()
 
     # ==========================================================================
-    # 1. RECHTER PANEEL (x: 0-7, y: 8-15) -> Speciale Taken & Docker
+    # 1. TOP PANEEL (x: 0-7, y: 8-15) -> Speciale Taken & Docker
     # ==========================================================================
     if "aoa-docker" in p_name:
-        # Docker strak onder elkaar in de uiterst rechter kolom (kolom 7)
         docker_coordinates = {
-            "docker-build-aoa-concourse": (7, 13),           # DOCKER-A (onder)
+            "docker-build-aoa-concourse": (7, 13),            # DOCKER-A (onder)
             "docker-build-aoa-concourse-postgresql": (7, 14), # DOCKER-B (midden)
             "docker-build-aoa-concourse-containers": (7, 15)  # DOCKER-C (boven)
         }
         return docker_coordinates.get(job_name)
+
+    if "aoa-start-apps" in p_name:
+        start_apps = {
+            "build-and-test-aoa-start-apps": (0, 10),
+            "deploy-production": (0, 11)
+        }
+        return start_apps.get(job_name)
 
     if "wp-tasks" in p_name:
         if job_name in monitoredSpecial:
@@ -443,7 +449,7 @@ def get_job_coordinates(pipeline_name, job_name):
         return None
 
     # ==========================================================================
-    # 2. BOVENSTE PANEEL (Top) -> STATISCH BINNEN x: 8-15 en y: 0-7
+    # 2. RECHTER PANEEL -> STATISCH BINNEN x: 8-15 en y: 0-7
     # ==========================================================================
     if "osrpraoa" in p_name or any(base in p_name for base in ["aoa-gns", "aoa-common", "aoa-gateway", "aoa-user", "wp-draat", "wp-file-store", "wp-projectmanagement", "wp-project-app", "wp-winfrabase", "wp-ivon"]):
         
@@ -453,9 +459,9 @@ def get_job_coordinates(pipeline_name, job_name):
             "aoa-usermanagement",   # x: 9
             "wp-file-store",        # x: 10
             "wp-projectmanagement", # x: 11
-            "wp-project-app",       # x: 12  (Opgeschoven van 15 naar 12!)
-            "wp-winfrabase",        # x: 13  (Nieuw in beeld!)
-            "wp-ivon"               # x: 14  (Nieuw in beeld!)
+            "wp-project-app",       # x: 12
+            "wp-winfrabase",        # x: 13
+            "wp-ivon"               # x: 14
         ]
         
         xIndex = None
@@ -575,7 +581,6 @@ def getData():
         isError = True
         return False
 
-# 2. OPRUIMEN: Als het verwerken is gelukt, verwijder dan alle OUDERE bestanden
     if success and len(files) > 1:
         # Loop door alle bestanden heen, BEHALVE de allerlaatste (die we net gebruikt hebben)
         for old_file in files[:-1]:

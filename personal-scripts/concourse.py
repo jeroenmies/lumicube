@@ -46,9 +46,6 @@ vorige_kleuren = {}
 geluid_afgespeeld = False 
 ververs_alles = True  # Start op True voor de eerste run
 
-carrousel_counter = 0
-wissel_index = 0  # 0 = gns, 1 = common, 2 = draat
-
 # --- GLOBALE ANIMATIE VARIABELEN
 alternate = True        # Voor de 'next' wissels (0.5s)
 alternate_yellow = True # NIEUW: Voor started/geel (2.0s - factor 4 langzamer)
@@ -59,13 +56,73 @@ slow_counter_yellow = 0 # NIEUW: Teller voor geel
 heartbeat_timer = 0     # NIEUW: Vertrager voor de hartslag (1 stap per seconde)
 heartbeat_counter = 0   # De 12 paarsstappen
 
-# Gemonitorde data configuratie (essentieel voor de juiste x/y positiebepaling)
-monitoredPipeLines = [
-    "wp-all-osraoa", "wp-tasks-osraoa", "dummy", "aoa-docker-osraoa", "dummy", "aoa-gns-osrpraoa",
-    "dummy", "aoa-gdr-proxy-osraoa", "aoa-common-java-osrpraoa", "aoa-gateway-osrpraoa",
-    "aoa-usermanagement-osrpraoa", "wp-draat-osrpraoa", "wp-file-store-osrpraoa",
-    "wp-projectmanagement-osrpraoa", "wp-project-app-osrpraoa", "wp-winfrabase-osrpraoa", "wp-ivon-osrpraoa", "wp-start-apps-osraoa"
+# ============================================================================
+# RECHTERPANEEL CARROUSEL
+# ============================================================================
+
+PIPELINE_GROUPS = [
+    [
+        "aoa-gateway",
+        "aoa-usermanagement",
+        "wp-file-store",
+        "wp-projectmanagement",
+        "wp-project-app",
+        "wp-winfrabase",
+        "wp-ivon",
+        "aoa-gns"
+    ],
+    [
+        "aoa-common-java",
+        "wp-draat",
+        "dummy",
+        "dummy",
+        "dummy",
+        "provesy-asphalt-mixture",
+        "provesy-backend-gateway",
+        "provesy-contract",
+    ],
+    [
+        "provesy-event",
+        "provesy-fme-gateway",
+        "provesy-geo-gateway",
+        "provesy-ivon-gateway",
+        "provesy-master-data",
+        "provesy-pavement",
+        "provesy-test-section",
+        "provesy-warranty"
+    ]
 ]
+
+ALL_CAROUSEL_PIPELINES = {}
+
+for group in PIPELINE_GROUPS:
+    for idx, pipeline in enumerate(group):
+        ALL_CAROUSEL_PIPELINES[pipeline] = idx
+        
+active_group = 0
+
+GROUP_SWITCH_SECONDS = 10
+GROUP_SWITCH_CYCLES = 20
+
+group_timer = 0
+
+def build_pipeline_column_map():
+    global pipeline_column_map
+
+    pipeline_column_map = {
+        pipeline: 8 + idx
+        for idx, pipeline in enumerate(
+            PIPELINE_GROUPS[active_group]
+        )
+    }
+    print(
+        f"Active group: {active_group} -> "
+        f"{PIPELINE_GROUPS[active_group]}"
+    )
+        
+pipeline_column_map = {} 
+
+build_pipeline_column_map()
 
 monitoredSpecial = [
     "rdy-to-shutdown-environments", "toggle-rdy-to-shutdown-environments", "manual-trigger", "dummy", "dummy", "dummy", "dummy", "concourse-monitor", "stop-e2e", "stop-e2e-pr", "stop-e2e-develop", "dummy", "stop-ontwikkel", "stop-test", "stop-acceptance", "stop-production", "startup-spaces", "start-e2e", "start-e2e-pr", "start-e2e-develop", "start-ontwikkel", "start-test", "start-acceptance", "start-production", "deploy-pipeline-webportal-tasks", "deploy-pipelines", "dummy", "stop-pr-pipelines", "start-pr-pipelines", "dummy", "redeploy-apps", "rebuild-apps", "gns-cleardb-ontwikkel", "gns-cleardb-test", "gns-cleardb-acceptatie", "dummy", "test-gns-ontwikkel", "test-gns-test", "test-gns-acc", "test-gns-prod"
@@ -155,236 +212,348 @@ monitoredGNSPrJobs = [
     "recreate-dependabot-pull-requests", "pr-pre-build-and-test", "pr-build-and-test", "pr-smoke-test", "pr-e2e-test", "pr-merge"
 ]
 
-def animate():
-    global alternate, alternate_yellow, alternate_slow, slow_counter, slow_counter_yellow
-    global heartbeat_timer, heartbeat_counter, vorige_kleuren, geluid_afgespeeld, ververs_alles
-    global carrousel_counter, wissel_index
+
+def get_pipeline_group_position(pipeline_name):
+    # Geeft de zichtbare kolom terug voor de huidige actieve groep.
+    p_name = pipeline_name.lower()
+    for configured_name, col in pipeline_column_map.items():
+
+        if configured_name in p_name:
+            return col
+
+    return None
     
-    # 1. Update de trage timer voor BLAUWE leds (wisselt elke 1.0 seconde)
+def animate():
+    global alternate
+    global alternate_yellow
+    global alternate_slow
+    global slow_counter
+    global slow_counter_yellow
+    global heartbeat_timer
+    global heartbeat_counter
+    global vorige_kleuren
+    global geluid_afgespeeld
+    global ververs_alles
+
+    global active_group
+    global group_timer
+
+    # ==========================================================
+    # TIMER BLAUW (paused)
+    # ==========================================================
     slow_counter += 1
+
     if slow_counter >= 2:
-        # Volgende regel zorgt voor knippereffect
+        # indien je paused wilt laten knipperen:
         # alternate_slow = not alternate_slow
         slow_counter = 0
-        
-    # 2. Update de extra trage timer voor GELE leds (wisselt elke 2.0 seconden -> factor 4 langzamer)
+
+    # ==========================================================
+    # TIMER GEEL (started)
+    # ==========================================================
     slow_counter_yellow += 1
+
     if slow_counter_yellow >= 4:
         alternate_yellow = not alternate_yellow
         slow_counter_yellow = 0
-        
-    # 3. Update de carrousel timer (wisselt elke seconde van pipeline op x: 15)
-    carrousel_counter += 1
-    if carrousel_counter >= 2:
-        oude_wissel_index = wissel_index
-        wissel_index = (wissel_index + 1) % 3
-        carrousel_counter = 0
-        
-        # GEFIXT: Wis kolom 15 ALLEEN als er écht een wissel naar een andere pipeline plaatsvindt!
-        # Dit voorkomt dat de carrousel tussentijds de trage gele knipper-cyclus verstoort.
-        if oude_wissel_index != wissel_index:
-            for y_clear in range(8):
-                if vorige_kleuren.get((15, y_clear)) != black:
-                    display.set_led(15, y_clear, black)
-                    vorige_kleuren[(15, y_clear)] = black
+
+    # ==========================================================
+    # RECHTERPANEEL CARROUSEL
+    # ==========================================================
+    group_timer += 1
+
+    if group_timer >= GROUP_SWITCH_CYCLES:
     
+        old_group = active_group
+    
+        # 0 -> 1 -> 2 -> 0 -> 1 -> ...
+        active_group = (
+            active_group + 1
+        ) % len(PIPELINE_GROUPS)
+    
+        build_pipeline_column_map()
+    
+        # data opnieuw opbouwen voor deze groep
+        getData()
+
+        # rechterpaneel volledig leegmaken
+        for x in range(8, 16):
+            for y in range(8):
+                display.set_led(
+                    x,
+                    y,
+                    black
+                )
+
+                vorige_kleuren.pop(
+                    (x, y),
+                    None
+                )
+    
+        ververs_alles = True
+        group_timer = 0
+
+    # ==========================================================
+    # ERROR SCREEN
+    # ==========================================================
     if isError:
         error_colour = red if alternate else black
-        display.set_panel("right", [[error_colour] * 8] * 8)
+
+        display.set_panel(
+            "right",
+            [[error_colour] * 8] * 8
+        )
+
         vorige_kleuren.clear()
         ververs_alles = True
-        
+
         if not geluid_afgespeeld:
             try:
                 for frequency in range(400, 1200, 100):
                     speaker.tone(frequency, 0.02)
+
                 speaker.say("Pipeline error detected")
             except Exception:
                 pass
+
             geluid_afgespeeld = True
     else:
-        geluid_afgespeeld = False
-        
         if geluid_afgespeeld:
             try:
-                display.set_panel("right", [[0x000000] * 8] * 8)
+                display.set_panel(
+                    "right",
+                    [[black] * 8] * 8
+                )
                 vorige_kleuren.clear()
                 ververs_alles = True
             except Exception:
                 pass
-            geluid_afgespeeld = False
-        
-        # 4. Teken alle jobs (Met behoud van de achtergrondkleur bij het gele knipperen)
-        for (x, y), status_dict in data.items():
-            status = str(status_dict.get("current", "")).lower()
-            next_status = str(status_dict.get("next", "")).lower()
-            
-            # CHECK A: Is de hoofdstatus OF de opvolgende status "started" (geel)?
-            if status == "started" or next_status == "started":
-                # GEFIXT: Als alternate_yellow False is, toon dan de vorige kleur (groen of rood) 
-                # in plaats van zwart te worden!
-                current_colour = startedColour if alternate_yellow else getColour(status_dict.get("current"))
-                
-            # CHECK B: Is er een andere opvolgende status? (Knipper met de normale alternate)
-            elif "next" in status_dict:
-                current_colour = getColour(status_dict["next"] if alternate else status_dict["current"])
-                
-            # CHECK C: Is de status gepauzeerd (blauw)? (Knipper met alternate_slow naar zwart)
-            elif status == "paused":
-                current_colour = pausedColour if alternate_slow else black
-                
-            # CHECK D: Stabiele statussen (groen / rood)
-            else:
-                current_colour = getColour(status_dict["current"])
-            
-            # --- CARROUSEL PROJECTIE LOGICA VOOR X: 15 ---
-            target_x = x
-            if x == 16 or x == 17 or x == 18:
-                if (x == 16 and wissel_index == 0) or (x == 17 and wissel_index == 1) or (x == 18 and wissel_index == 2):
-                    target_x = 15
-                else:
-                    continue
 
-            if ververs_alles or vorige_kleuren.get((target_x, y)) != current_colour:
-                display.set_led(target_x, y, current_colour)
-                vorige_kleuren[(target_x, y)] = current_colour
+            geluid_afgespeeld = False
+
+        # ======================================================
+        # TEKEN ALLE JOBS
+        # ======================================================
+        for (x, y), status_dict in data.items():
+            if x >= 8:
+                zichtbare_kolommen = range(8, 16)
+                if x not in zichtbare_kolommen:
+                    continue
                 
-        # ==========================================================================
-        # 5. HEARTBEAT OP (7, 8) - 12 SECONDEN CYCLUS
-        # ==========================================================================
+            status = str(
+                status_dict.get("current", "")
+            ).lower()
+
+            next_status = str(
+                status_dict.get("next", "")
+            ).lower()
+
+            # started -> geel knipperen
+            if status == "started" or next_status == "started":
+                current_colour = (
+                    startedColour
+                    if alternate_yellow
+                    else getColour(
+                        status_dict.get("current")
+                    )
+                )
+            # next status aanwezig
+            elif "next" in status_dict:
+                current_colour = getColour(
+                    status_dict["next"]
+                    if alternate
+                    else status_dict["current"]
+                )
+            # paused
+            elif status == "paused":
+                current_colour = (
+                    pausedColour
+                    if alternate_slow
+                    else black
+                )
+            # stabiele status
+            else:
+                current_colour = getColour(
+                    status_dict["current"]
+                )
+
+            target_x = x
+
+            if (
+                ververs_alles
+                or vorige_kleuren.get((target_x, y))
+                != current_colour
+            ):
+                display.set_led(
+                    target_x,
+                    y,
+                    current_colour
+                )
+
+                vorige_kleuren[(target_x, y)] = current_colour
+
+        # ======================================================
+        # HEARTBEAT
+        # ======================================================
         heartbeat_timer += 1
+
         if heartbeat_timer >= 2:
-            heartbeat_counter = (heartbeat_counter + 1) % 12
+            heartbeat_counter = (
+                heartbeat_counter + 1
+            ) % 12
+
             heartbeat_timer = 0
-            
-            if heartbeat_counter == 0 or heartbeat_counter == 6:
+
+            if heartbeat_counter in (0, 6):
                 heartbeat_colour = 0x000000
-            elif heartbeat_counter == 1 or heartbeat_counter == 11:
+            elif heartbeat_counter in (1, 11):
                 heartbeat_colour = 0x220044
-            elif heartbeat_counter == 2 or heartbeat_counter == 10:
+            elif heartbeat_counter in (2, 10):
                 heartbeat_colour = 0x5511aa
-            elif heartbeat_counter == 3 or heartbeat_counter == 9:
+            elif heartbeat_counter in (3, 9):
                 heartbeat_colour = 0x8822ee
-            elif heartbeat_counter == 4 or heartbeat_counter == 8:
+            elif heartbeat_counter in (4, 8):
                 heartbeat_colour = 0xbb33ff
             else:
                 heartbeat_colour = 0x660099
-                
-            display.set_led(7, 8, heartbeat_colour)
+
+            display.set_led(
+                7,
+                8,
+                heartbeat_colour
+            )
+
             vorige_kleuren[(7, 8)] = heartbeat_colour
-                    
+
         ververs_alles = False
-            
+
     alternate = not alternate
 
 
 def process_jobs(jobsJson):
-    """Verwerkt de JSON-input en mapt de pauze-indicatoren exact synchroon met get_job_coordinates."""
-    global data, pipelines, ververs_alles, vorige_kleuren
-    
+    global data
+    global pipelines
+    global ververs_alles
+
     if not jobsJson or not isinstance(jobsJson, dict):
         return False
-        
+
     tijdelijke_data = {}
-    
-    # EXACT SYNCHROON MET JOUW get_job_coordinates VOLGORDE:
-    # De 7 backend pipelines die een VASTE eigen kolom hebben op x: 8 t/m 14
-    vaste_mapping = [
-        "aoa-gateway",          # x: 8
-        "aoa-usermanagement",   # x: 9
-        "wp-file-store",        # x: 10
-        "wp-projectmanagement", # x: 11
-        "wp-project-app",       # x: 12
-        "wp-winfrabase",        # x: 13
-        "wp-ivon"               # x: 14
-    ]
-    
     paused_columns = set()
-    
-    try:
-        display.set_all(black)
-        vorige_kleuren.clear()  
-    except Exception:
-        pass
 
-    # 1. Controleer welke pipelines in Concourse op pause staan
+    # --------------------------------------------------------
+    # PIPELINES OP PAUSE
+    # --------------------------------------------------------
     pipelines_lijst = jobsJson.get("pipelines", [])
-    for p in pipelines_lijst:
-        p_name = p.get("name", "").lower()
-        if p.get("paused") == True:
-            # Check A: Is het een van de 3 carrousel-pipelines?
-            if "aoa-gns" in p_name:
-                paused_columns.add(16)
-            elif "aoa-common" in p_name:
-                paused_columns.add(17)
-            elif "wp-draat" in p_name:
-                paused_columns.add(18)
-            else:
-                # Check B: Is het een van de 7 vaste pipelines? (x: 8 t/m 14)
-                for i, base_name in enumerate(vaste_mapping):
-                    if base_name in p_name:
-                        paused_columns.add(8 + i)
-                        break
 
-    # 2. Loop door de jobs voor alle reguliere leds
+    for pipeline in pipelines_lijst:
+        p_name = pipeline.get("name", "").lower()
+        if pipeline.get("paused") is not True:
+            continue
+
+        col = get_pipeline_group_position(p_name)
+
+        if col is not None:
+            paused_columns.add(col)
+
+    # --------------------------------------------------------
+    # JOBS
+    # --------------------------------------------------------
     jobs_lijst = jobsJson.get("jobs", [])
+
     for job in jobs_lijst:
         if not isinstance(job, dict):
             continue
-            
+
         pipelineName = job.get("pipeline_name", "")
         jobName = job.get("name", "")
-        p_name = pipelineName.lower()
-        
-        coords = get_job_coordinates(pipelineName, jobName)
-        if not coords:
+
+        coords = get_job_coordinates(
+            pipelineName,
+            jobName
+        )
+
+        if coords is None:
             continue
-            
+
         xIndex, yIndex = coords
 
-        if not (0 <= xIndex <= 18 and 0 <= yIndex <= 15):
+        if not (
+            0 <= xIndex <= 15
+            and
+            0 <= yIndex <= 15
+        ):
             continue
 
-        pipes = pipelines.setdefault(pipelineName, {})
+        pipes = pipelines.setdefault(
+            pipelineName,
+            {}
+        )
+
         if (xIndex, yIndex) not in tijdelijke_data:
-            tijdelijke_data[xIndex, yIndex] = {}
+            tijdelijke_data[(xIndex, yIndex)] = {}
 
-        if job.get("paused") == True:
-            tijdelijke_data[xIndex, yIndex]["current"] = "paused"
+        # ----------------------------------------------------
+        # PAUSED JOB
+        # ----------------------------------------------------
+        if job.get("paused") is True:
+            tijdelijke_data[(xIndex, yIndex)]["current"] = "paused"
+
             pipes[yIndex] = "paused"
-            
-            # Schakel ook bij een individuele gepauzeerde job de juiste rij 6 indicator in
-            if "aoa-gns" in p_name:
-                paused_columns.add(16)
-            elif "aoa-common" in p_name:
-                paused_columns.add(17)
-            elif "wp-draat" in p_name:
-                paused_columns.add(18)
-            else:
-                for i, base_name in enumerate(vaste_mapping):
-                    if base_name in p_name:
-                        paused_columns.add(8 + i)
-                        break
-        else:
-            if "next_build" in job and job["next_build"].get("status") == "started":
-                tijdelijke_data[xIndex, yIndex]["next"] = "started"
-                pipes[yIndex] = "started"
 
-            status = job["finished_build"].get("status", "pending") if "finished_build" in job else "pending"
-            tijdelijke_data[xIndex, yIndex]["current"] = status
-            pipes[yIndex] = status
+            col = get_pipeline_group_position(
+                pipelineName.lower()
+            )
 
-    # ==========================================================================
-    # 3. ABSOLUTE PRIORITEIT VOOR RIJ 6:
-    # We zetten de pauze-indicatoren nu op de exact gecorrigeerde kolommen weg!
-    # De carrousel-indicatoren (16, 17, 18) worden hierdoor automatisch mee-gewisseld.
-    # ==========================================================================
-    for x_pauze in paused_columns:
-        tijdelijke_data[(x_pauze, 6)] = {"current": "paused"}
+            if col is not None:
+                paused_columns.add(col)
+
+            continue
+
+        # ----------------------------------------------------
+        # NEXT BUILD
+        # ----------------------------------------------------
+        next_build = job.get("next_build")
+
+        if (
+            next_build
+            and
+            next_build.get("status") == "started"
+        ):
+            tijdelijke_data[(xIndex, yIndex)]["next"] = "started"
+
+            pipes[yIndex] = "started"
+
+        # ----------------------------------------------------
+        # CURRENT BUILD
+        # ----------------------------------------------------
+        finished_build = (
+            job.get("finished_build")
+            or {}
+        )
+
+        status = finished_build.get(
+            "status",
+            "pending"
+        )
+
+        tijdelijke_data[(xIndex, yIndex)]["current"] = status
+
+        pipes[yIndex] = status
+
+    # --------------------------------------------------------
+    # PAUSE INDICATORS
+    # --------------------------------------------------------
+    for paused_column in paused_columns:
+        tijdelijke_data[(paused_column, 6)] = {
+            "current": "paused"
+        }
 
     data = tijdelijke_data
     ververs_alles = True
+
     return True
+
 
 def get_job_coordinates(pipeline_name, job_name):
     """
@@ -445,49 +614,80 @@ def get_job_coordinates(pipeline_name, job_name):
                 return (3 + (idx - 32), 14) # Kolom 3, 4, 5 op rij 14
             elif 36 <= idx <= 39:  # test-gns (ontwikkel, test, acc, prod)
                 return (3 + (idx - 36), 15) # Kolom 3, 4, 5, 6 op rij 15
-                
+
         return None
 
     # ==========================================================================
-    # 2. RECHTER PANEEL -> STATISCH BINNEN x: 8-15 en y: 0-7
+    # 2. RECHTER PANEEL
     # ==========================================================================
-    if "osrpraoa" in p_name or any(base in p_name for base in ["aoa-gns", "aoa-common", "aoa-gateway", "aoa-user", "wp-draat", "wp-file-store", "wp-projectmanagement", "wp-project-app", "wp-winfrabase", "wp-ivon"]):
-        
-        # De 7 backend pipelines die een VASTE, eigen kolom krijgen (x: 8 t/m 14)
-        vaste_mapping = [
-            "aoa-gateway",          # x: 8
-            "aoa-usermanagement",   # x: 9
-            "wp-file-store",        # x: 10
-            "wp-projectmanagement", # x: 11
-            "wp-project-app",       # x: 12
-            "wp-winfrabase",        # x: 13
-            "wp-ivon"               # x: 14
-        ]
-        
-        xIndex = None
-        for i, base_name in enumerate(vaste_mapping):
-            if base_name in p_name:
-                xIndex = 8 + i
-                break
+    if (
+        "osrpraoa" in p_name
+        or "aoa-gns" in p_name
+        or "aoa-common" in p_name
+        or "aoa-gateway" in p_name
+        or "aoa-usermanagement" in p_name
+        or "wp-draat" in p_name
+        or "wp-file-store" in p_name
+        or "wp-projectmanagement" in p_name
+        or "wp-project-app" in p_name
+        or "wp-winfrabase" in p_name
+        or "wp-ivon" in p_name
+        or "provesy" in p_name
+    ):
 
-        # Als het niet in de vaste kolommen zit, is het een van de 3 carrousel-pipelines.
-        # We geven ze een virtuele x-coördinaat mee buiten het grid (16, 17, 18).
+        xIndex = get_pipeline_group_position(
+            p_name
+        )
+        
         if xIndex is None:
-            if "aoa-gns" in p_name:
-                xIndex = 16
-            elif "aoa-common" in p_name:
-                xIndex = 17
-            elif "wp-draat" in p_name:
-                xIndex = 18
-            else:
-                xIndex = 8  # Veilige fallback
+            return None
             
-        y_idx = 0
+        # ------------------------------------------------------
+        # Carrousel groep
+        # ------------------------------------------------------
+        if xIndex is None:
+            for pipeline_name, col in pipeline_column_map.items():
+                if pipeline_name in p_name:
+                    xIndex = col
+                    break
+                if xIndex is None:
+                    return None
+
+        # ------------------------------------------------------
+        # Job-naar-rij vertaling
+        # ------------------------------------------------------
+        y_idx = None
+
         if job_name in monitoredPrJobs:
-            y_idx = min(monitoredPrJobs.index(job_name), 7)
+            y_idx = min(
+                monitoredPrJobs.index(job_name),
+                7
+            )
         elif job_name in monitoredJobs:
-            y_idx = min(monitoredJobs.index(job_name), 7)
-            
+            y_idx = min(
+                monitoredJobs.index(job_name),
+                7
+            )
+        elif job_name in monitoredGNSPrJobs:
+            y_idx = min(
+                monitoredGNSPrJobs.index(job_name),
+                7
+            )
+        elif job_name in monitoredGNSJobs:
+            y_idx = min(
+                monitoredGNSJobs.index(job_name),
+                7
+            )
+
+        if y_idx is None:
+            return None
+
+        if y_idx == 0:
+            print(
+                f"GROUP={active_group} "
+                f"PIPELINE={pipeline_name} "
+                f"X={xIndex}"
+            )
         return (xIndex, y_idx)
         
     # ==========================================================================
@@ -505,7 +705,7 @@ def get_job_coordinates(pipeline_name, job_name):
 
 
 def getData():
-    """Haalt bestanden op van Slack, pakt de nieuwste zip uit en verwerkt de JSON."""
+    # Haalt bestanden op van Slack, pakt de nieuwste zip uit en verwerkt de JSON.
     global isError, checkDelayCount
     requestData = {'channel': 'C04B02K7RA6'}
     
@@ -596,7 +796,7 @@ if __name__ == "__main__":
         animate()
         
         nu = time.time()
-        if nu - laatste_api_check >= 60.0:
+        if nu - laatste_api_check >= 120.0:
             getData()
             laatste_api_check = nu
             

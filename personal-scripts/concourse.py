@@ -493,23 +493,11 @@ def get_job_coordinates(pipeline_name, job_name):
     # ==========================================================================
     # 3. LINKER PANEEL (x: 0-7, y: 0-7) -> wp-all-osraoa
     # ==========================================================================
-    if "wp-all" in p_name or "osraoa" in p_name:
+    if ("wp-all" in p_name or "osraoa" in p_name) and "bp-all-osraoa" not in p_name:
         if job_name in monitoredJobs:
             idx = monitoredJobs.index(job_name)
-            if idx < 8:
-                return (0, idx)
-            elif idx < 16:
-                return (1, idx - 8)
-            elif idx < 24:
-                return (2, idx - 16)
-            elif idx < 32:
-                return (3, idx - 24)
-            elif idx < 40:
-                return (4, idx - 32)
-            elif idx < 48:
-                return (5, idx - 40)
-            elif idx < 56:
-                return (6, idx - 48)
+            if idx < 56:
+                return (idx // 8, idx % 8)
             else:
                 return (7, min(idx - 56, 7))
 
@@ -613,4 +601,4 @@ if __name__ == "__main__":
             laatste_api_check = nu
             
         time.sleep(0.5)
-        
+ 

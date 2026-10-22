@@ -93,6 +93,152 @@ PIPELINE_GROUPS = [
     ]
 ]
 
+LEFT_PANEL_GROUPS = [
+    # =========================================================================
+    # CYCLE 1 - DEVELOP
+    # =========================================================================
+    [
+        "build-and-test-develop-draat",
+        "build-and-test-develop-file-store",
+        "build-and-test-develop-gateway",
+        "build-and-test-develop-ivon",
+        "build-and-test-develop-project-app",
+        "build-and-test-develop-projectmanagement",
+        "build-and-test-develop-usermanagement",
+        "build-and-test-develop-winfrabase",
+
+        "deploy-e2e-develop-draat",
+        "deploy-e2e-develop-file-store",
+        "deploy-e2e-develop-gateway",
+        "deploy-e2e-develop-ivon",
+        "deploy-e2e-develop-project-app",
+        "deploy-e2e-develop-projectmanagement",
+        "deploy-e2e-develop-usermanagement",
+        "deploy-e2e-develop-winfrabase",
+
+        "deploy-develop-draat",
+        "deploy-develop-file-store",
+        "deploy-develop-gateway",
+        "deploy-develop-ivon",
+        "deploy-develop-project-app",
+        "deploy-develop-projectmanagement",
+        "deploy-develop-usermanagement",
+        "deploy-develop-winfrabase",
+
+        "build-and-test-develop-winfrabase-converter",
+        "deploy-e2e-develop-winfrabase-converter",
+        "deploy-develop-winfrabase-converter",
+
+        "build-and-test-develop-provesy-asphalt-mixture",
+        "build-and-test-develop-provesy-backend-gateway",
+        "build-and-test-develop-provesy-contract",
+        "build-and-test-develop-provesy-event",
+        "build-and-test-develop-provesy-fme-gateway",
+        "build-and-test-develop-provesy-geo-gateway",
+        "build-and-test-develop-provesy-ivon-gateway",
+        "build-and-test-develop-provesy-master-data",
+        "build-and-test-develop-provesy-pavement",
+        "build-and-test-develop-provesy-test-section",
+        "build-and-test-develop-provesy-warranty",
+
+        "deploy-e2e-develop-provesy-asphalt-mixture",
+        "deploy-e2e-develop-provesy-backend-gateway",
+        "deploy-e2e-develop-provesy-contract",
+        "deploy-e2e-develop-provesy-event",
+        "deploy-e2e-develop-provesy-fme-gateway",
+        "deploy-e2e-develop-provesy-geo-gateway",
+        "deploy-e2e-develop-provesy-ivon-gateway",
+        "deploy-e2e-develop-provesy-master-data",
+        "deploy-e2e-develop-provesy-pavement",
+        "deploy-e2e-develop-provesy-test-section",
+        "deploy-e2e-develop-provesy-warranty",
+
+        "deploy-develop-provesy-asphalt-mixture",
+        "deploy-develop-provesy-backend-gateway",
+        "deploy-develop-provesy-contract",
+        "deploy-develop-provesy-event",
+        "deploy-develop-provesy-fme-gateway",
+        "deploy-develop-provesy-geo-gateway",
+        "deploy-develop-provesy-ivon-gateway",
+        "deploy-develop-provesy-master-data",
+        "deploy-develop-provesy-pavement",
+        "deploy-develop-provesy-test-section",
+        "deploy-develop-provesy-warranty"
+    ],
+
+    # =========================================================================
+    # CYCLE 2 - MASTER
+    # =========================================================================
+    [
+        "build-and-test-draat",
+        "build-and-test-file-store",
+        "build-and-test-gateway",
+        "build-and-test-ivon",
+        "build-and-test-project-app",
+        "build-and-test-projectmanagement",
+        "build-and-test-usermanagement",
+        "build-and-test-winfrabase",
+        "build-and-test-winfrabase-converter",
+
+        "build-and-test-provesy-asphalt-mixture",
+        "build-and-test-provesy-backend-gateway",
+        "build-and-test-provesy-contract",
+        "build-and-test-provesy-event",
+        "build-and-test-provesy-fme-gateway",
+        "build-and-test-provesy-geo-gateway",
+        "build-and-test-provesy-ivon-gateway",
+        "build-and-test-provesy-master-data",
+        "build-and-test-provesy-pavement",
+        "build-and-test-provesy-test-section",
+        "build-and-test-provesy-warranty",
+
+        "deploy-e2e-master-draat",
+        "deploy-e2e-master-file-store",
+        "deploy-e2e-master-gateway",
+        "deploy-e2e-master-ivon",
+        "deploy-e2e-master-project-app",
+        "deploy-e2e-master-projectmanagement",
+        "deploy-e2e-master-usermanagement",
+        "deploy-e2e-master-winfrabase",
+        "deploy-e2e-master-winfrabase-converter",
+
+        "deploy-e2e-master-provesy-asphalt-mixture",
+        "deploy-e2e-master-provesy-backend-gateway",
+        "deploy-e2e-master-provesy-contract",
+        "deploy-e2e-master-provesy-event",
+        "deploy-e2e-master-provesy-fme-gateway",
+        "deploy-e2e-master-provesy-geo-gateway",
+        "deploy-e2e-master-provesy-ivon-gateway",
+        "deploy-e2e-master-provesy-master-data",
+        "deploy-e2e-master-provesy-pavement",
+        "deploy-e2e-master-provesy-test-section",
+        "deploy-e2e-master-provesy-warranty"
+    ],
+
+    # =========================================================================
+    # CYCLE 3 - APPS
+    # =========================================================================
+    [
+        "pipeline-apps-all:trigger-e2e-develop",
+        "pipeline-apps-all:webportal-e2e-develop",
+        "pipeline-apps-all:trigger-e2e-master",
+        "pipeline-apps-all:webportal-e2e",
+        "pipeline-apps-all:deploy-pr",
+        "pipeline-apps-all:deploy-test",
+        "pipeline-apps-all:deploy-acceptance",
+        "pipeline-apps-all:deploy-production",
+
+        "pipeline-apps-all-bp:trigger-e2e-develop",
+        "pipeline-apps-all-bp:webportal-e2e-develop",
+        "pipeline-apps-all-bp:trigger-e2e-master",
+        "pipeline-apps-all-bp:webportal-e2e",
+        "pipeline-apps-all-bp:deploy-pr",
+        "pipeline-apps-all-bp:deploy-test",
+        "pipeline-apps-all-bp:deploy-acceptance",
+        "pipeline-apps-all-bp:deploy-production"
+    ]
+]
+
 ALL_CAROUSEL_PIPELINES = {}
 
 for group in PIPELINE_GROUPS:
@@ -115,10 +261,12 @@ def build_pipeline_column_map():
             PIPELINE_GROUPS[active_group]
         )
     }
-    print(
-        f"Active group: {active_group} -> "
-        f"{PIPELINE_GROUPS[active_group]}"
-    )
+    # DEBUG
+    ########
+    # print(
+    #     f"Active group: {active_group} -> "
+    #     f"{PIPELINE_GROUPS[active_group]}"
+    # )
         
 pipeline_column_map = {} 
 
@@ -174,14 +322,14 @@ monitoredJobs = [
     "build-and-test-usermanagement", 
     "build-and-test-winfrabase", 
     
-    "deploy-e2e-draat", 
-    "deploy-e2e-file-store", 
-    "deploy-e2e-gateway", 
-    "deploy-e2e-ivon", 
-    "deploy-e2e-project-app", 
-    "deploy-e2e-projectmanagement", 
-    "deploy-e2e-usermanagement", 
-    "deploy-e2e-winfrabase", 
+    "deploy-e2e-master-draat", 
+    "deploy-e2e-master-file-store", 
+    "deploy-e2e-master-gateway", 
+    "deploy-e2e-master-ivon", 
+    "deploy-e2e-master-project-app", 
+    "deploy-e2e-master-projectmanagement", 
+    "deploy-e2e-master-usermanagement", 
+    "deploy-e2e-master-winfrabase", 
 
     "dummy", 
     "dummy", 
@@ -190,9 +338,9 @@ monitoredJobs = [
     "deploy-develop-winfrabase-converter", 
     "deploy-e2e-develop-winfrabase-converter", 
     "build-and-test-winfrabase-converter", 
-    "deploy-e2e-winfrabase-converter", 
+    "deploy-e2e-master-winfrabase-converter", 
     
-    "trigger-e2e", 
+    "trigger-e2e-master", 
     "webportal-e2e", 
     "deploy-pr", 
     "deploy-test", 
@@ -682,12 +830,14 @@ def get_job_coordinates(pipeline_name, job_name):
         if y_idx is None:
             return None
 
-        if y_idx == 0:
-            print(
-                f"GROUP={active_group} "
-                f"PIPELINE={pipeline_name} "
-                f"X={xIndex}"
-            )
+        # DEBUG
+        ########
+        # if y_idx == 0:
+        #     print(
+        #         f"GROUP={active_group} "
+        #         f"PIPELINE={pipeline_name} "
+        #         f"X={xIndex}"
+        #     )
         return (xIndex, y_idx)
         
     # ==========================================================================
@@ -801,4 +951,4 @@ if __name__ == "__main__":
             laatste_api_check = nu
             
         time.sleep(0.5)
- 
+        

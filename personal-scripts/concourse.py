@@ -58,7 +58,7 @@ heartbeat_timer = 0     # Vertrager voor de hartslag
 heartbeat_counter = 0   # De 12 paarsstappen
 
 # ============================================================================
-# CYCLI & CARROUSEL CONFIGURATIE
+# CYCLI & CARROUSEL CONFIGURATIE (Geoptimaliseerde Mappings)
 # ============================================================================
 active_cycle = 0
 GROUP_SWITCH_CYCLES = 20
@@ -97,6 +97,109 @@ PIPELINE_GROUPS = [
     ]
 ]
 
+# --- WP MAPPINGS (Linkerkant - Cycle 0, 1, 2) ---
+WP_DEV_MAP = {job: idx for idx, job in enumerate([
+    "build-and-test-develop-draat", "build-and-test-develop-file-store", 
+    "build-and-test-develop-gateway", "build-and-test-develop-project-app", 
+    "build-and-test-develop-ivon", "build-and-test-develop-projectmanagement", 
+    "build-and-test-develop-usermanagement", "build-and-test-develop-winfrabase",
+    "build-and-test-develop-winfrabase-converter", "build-and-test-develop-gns",
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-develop-draat", "deploy-develop-file-store", 
+    "deploy-develop-gateway", "deploy-develop-project-app", 
+    "deploy-develop-ivon", "deploy-develop-projectmanagement",
+    "deploy-develop-usermanagement", "deploy-develop-winfrabase", 
+    "deploy-develop-winfrabase-converter", "deploy-develop-gns",
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-e2e-develop-draat", "deploy-e2e-develop-file-store", 
+    "deploy-e2e-develop-gateway", "deploy-e2e-develop-project-app",
+    "deploy-e2e-develop-ivon", "deploy-e2e-develop-projectmanagement", 
+    "deploy-e2e-develop-usermanagement", "deploy-e2e-develop-winfrabase", 
+    "deploy-e2e-develop-winfrabase-converter", "deploy-e2e-develop-gns",
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "trigger-e2e-develop", "webportal-e2e-develop"
+])}
+
+WP_MASTER_MAP = {job: idx for idx, job in enumerate([
+    "build-and-test-draat", "build-and-test-file-store", 
+    "build-and-test-gateway", "build-and-test-project-app", 
+    "build-and-test-ivon", "build-and-test-projectmanagement", 
+    "build-and-test-usermanagement", "build-and-test-winfrabase",
+    "build-and-test-winfrabase-converter", "build-and-test-gns",
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-e2e-master-draat", "deploy-e2e-master-file-store", 
+    "deploy-e2e-master-gateway", "deploy-e2e-master-project-app", 
+    "deploy-e2e-master-ivon", "deploy-e2e-master-projectmanagement",
+    "deploy-e2e-master-usermanagement", "deploy-e2e-master-winfrabase", 
+    "deploy-e2e-master-winfrabase-converter", "deploy-e2e-master-gns",
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "trigger-e2e-master", "webportal-e2e", "dummy", "dummy", "dummy", "dummy", "dummy", "redeploy-ontwikkel"
+])}
+
+WP_DEPLOY_MAP = {job: idx for idx, job in enumerate([
+    "deploy-pr", "deploy-pr-wbc", 
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-test", "deploy-test-wbc", 
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-acceptance", "deploy-acceptance-wbc", 
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-production", "deploy-production-wb", "deploy-production-wbc"
+])}
+
+# --- BP MAPPINGS (Rechterscherm - Cycle 0, 1, 2) ---
+BP_DEV_MAP = {job: idx for idx, job in enumerate([
+    "build-and-test-develop-provesy-asphalt-mixture", "build-and-test-develop-provesy-backend-gateway",
+    "build-and-test-develop-provesy-contract", "build-and-test-develop-provesy-event",
+    "build-and-test-develop-provesy-fme-gateway", "build-and-test-develop-provesy-geo-gateway",
+    "build-and-test-develop-provesy-ivon-gateway", "build-and-test-develop-provesy-master-data",
+    "build-and-test-develop-provesy-pavement", "build-and-test-develop-provesy-test-section",
+    "build-and-test-develop-provesy-warranty",
+    "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-develop-provesy-asphalt-mixture", "deploy-develop-provesy-backend-gateway",
+    "deploy-develop-provesy-contract", "deploy-develop-provesy-event",
+    "deploy-develop-provesy-fme-gateway", "deploy-develop-provesy-geo-gateway",
+    "deploy-develop-provesy-ivon-gateway", "deploy-develop-provesy-master-data",
+    "deploy-develop-provesy-pavement", "deploy-develop-provesy-test-section",
+    "deploy-develop-provesy-warranty",
+    "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-e2e-develop-provesy-asphalt-mixture", "deploy-e2e-develop-provesy-backend-gateway",
+    "deploy-e2e-develop-provesy-contract", "deploy-e2e-develop-provesy-event",
+    "deploy-e2e-develop-provesy-fme-gateway", "deploy-e2e-develop-provesy-geo-gateway",
+    "deploy-e2e-develop-provesy-ivon-gateway", "deploy-e2e-develop-provesy-master-data",
+    "deploy-e2e-develop-provesy-pavement", "deploy-e2e-develop-provesy-test-section",
+    "deploy-e2e-develop-provesy-warranty",
+    "dummy", "dummy", "dummy", "dummy", "dummy",
+    "trigger-e2e-develop", "webportal-e2e-develop"
+])}
+
+BP_MASTER_MAP = {job: idx for idx, job in enumerate([
+    "build-and-test-provesy-asphalt-mixture", "build-and-test-provesy-backend-gateway",
+    "build-and-test-provesy-contract", "build-and-test-provesy-event",
+    "build-and-test-provesy-fme-gateway", "build-and-test-provesy-geo-gateway",
+    "build-and-test-provesy-ivon-gateway", "build-and-test-provesy-master-data",
+    "build-and-test-provesy-pavement", "build-and-test-provesy-test-section",
+    "build-and-test-provesy-warranty",
+    "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-e2e-master-provesy-asphalt-mixture", "deploy-e2e-master-provesy-backend-gateway",
+    "deploy-e2e-master-provesy-contract", "deploy-e2e-master-provesy-event",
+    "deploy-e2e-master-provesy-fme-gateway", "deploy-e2e-master-provesy-geo-gateway",
+    "deploy-e2e-master-provesy-ivon-gateway", "deploy-e2e-master-provesy-master-data",
+    "deploy-e2e-master-provesy-pavement", "deploy-e2e-master-provesy-test-section",
+    "deploy-e2e-master-provesy-warranty",
+    "dummy", "dummy", "dummy", "dummy", "dummy",
+    "trigger-e2e-master", "webportal-e2e", "dummy", "dummy", "dummy", "dummy", "dummy", "redeploy-ontwikkel"
+])}
+
+BP_DEPLOY_MAP = {job: idx for idx, job in enumerate([
+    "deploy-pr",
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-test", 
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-acceptance", 
+    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+    "deploy-production"
+])}
+
 pipeline_column_map = {} 
 
 def build_pipeline_column_map():
@@ -116,14 +219,14 @@ monitoredSpecial = [
     "rdy-to-shutdown-environments", "toggle-rdy-to-shutdown-environments", "manual-trigger", "dummy", "dummy", "dummy", "dummy", "concourse-monitor", "stop-e2e", "stop-e2e-pr", "stop-e2e-develop", "dummy", "stop-ontwikkel", "stop-test", "stop-acceptance", "stop-production", "startup-spaces", "start-e2e", "start-e2e-pr", "start-e2e-develop", "start-ontwikkel", "start-test", "start-acceptance", "start-production", "deploy-pipeline-webportal-tasks", "deploy-pipelines", "dummy", "stop-pr-pipelines", "start-pr-pipelines", "dummy", "redeploy-apps", "rebuild-apps", "gns-cleardb-ontwikkel", "gns-cleardb-test", "gns-cleardb-acceptatie", "dummy", "test-gns-ontwikkel", "test-gns-test", "test-gns-acc", "test-gns-prod"
 ]
 
+# Flink ingekorte monitoredJobs lijst (alleen benodigd voor backend-carrousel / cycli 3-5)
 monitoredJobs = [
-    "build-and-test-develop-draat", "build-and-test-develop-file-store", "build-and-test-develop-gateway", "build-and-test-develop-ivon", "build-and-test-develop-project-app", "build-and-test-develop-projectmanagement", "build-and-test-develop-usermanagement", "build-and-test-develop-winfrabase",
-    "deploy-develop-draat", "deploy-develop-file-store", "deploy-develop-gateway", "deploy-develop-ivon", "deploy-develop-project-app", "deploy-develop-projectmanagement", "deploy-develop-usermanagement", "deploy-develop-winfrabase", 
-    "deploy-e2e-develop-draat", "deploy-e2e-develop-file-store", "deploy-e2e-develop-gateway", "deploy-e2e-develop-ivon", "deploy-e2e-develop-project-app", "deploy-e2e-develop-projectmanagement", "deploy-e2e-develop-usermanagement", "deploy-e2e-develop-winfrabase",
-    "trigger-e2e-develop", "webportal-e2e-develop", "dummy", "dummy", "dummy", "dummy", "dummy", "redeploy-ontwikkel",
-    "build-and-test-draat", "build-and-test-file-store", "build-and-test-gateway", "build-and-test-ivon", "build-and-test-project-app", "build-and-test-projectmanagement", "build-and-test-usermanagement", "build-and-test-winfrabase", 
-    "deploy-e2e-master-draat", "deploy-e2e-master-file-store", "deploy-e2e-master-gateway", "deploy-e2e-master-ivon", "deploy-e2e-master-project-app", "deploy-e2e-master-projectmanagement", "deploy-e2e-master-usermanagement", "deploy-e2e-master-winfrabase", 
-    "dummy", "dummy", "dummy", "build-and-test-develop-winfrabase-converter", "deploy-develop-winfrabase-converter", "deploy-e2e-develop-winfrabase-converter", "build-and-test-winfrabase-converter", "deploy-e2e-master-winfrabase-converter", 
+    "build-and-test-draat", "build-and-test-file-store", "build-and-test-gateway", 
+    "build-and-test-ivon", "build-and-test-project-app", "build-and-test-projectmanagement", 
+    "build-and-test-usermanagement", "build-and-test-winfrabase", 
+    "deploy-e2e-master-draat", "deploy-e2e-master-file-store", "deploy-e2e-master-gateway", 
+    "deploy-e2e-master-ivon", "deploy-e2e-master-project-app", "deploy-e2e-master-projectmanagement", 
+    "deploy-e2e-master-usermanagement", "deploy-e2e-master-winfrabase", 
     "trigger-e2e-master", "webportal-e2e", "deploy-pr", "deploy-test", "deploy-acceptance", "deploy-production"
 ]
 
@@ -167,7 +270,6 @@ def animate():
         build_pipeline_column_map()
         getData()
 
-        # Volledige voorkant (x: 0 t/m 15, y: 0 t/m 7) opschonen bij wisseling
         for x in range(0, 16):
             for y in range(8):
                 display.set_led(x, y, black)
@@ -370,7 +472,7 @@ def get_job_coordinates(pipeline_name, job_name):
                 return None
             return (xIndex, y_idx)
 
-    # 3. APPS & DEPLOYS CYCLI (Cycli 0, 1, 2)
+    # 3. APPS & DEPLOYS CYCLI (Cycli 0, 1, 2) - Supersnel via O(1) Dictionary Lookup
     is_wp = ("wp-all" in p_name or "osraoa" in p_name) and "bp-all-osraoa" not in p_name
     is_bp = "bp-all-osraoa" in p_name
 
@@ -379,127 +481,18 @@ def get_job_coordinates(pipeline_name, job_name):
     if is_wp or is_bp:
         x_offset = 0 if is_wp else 8  # Links = 0-7, Rechts = 8-15
         
-        # --- CYCLE 0: DEVELOP ---
         if effective_cycle == 0:
-            if is_wp:
-                target_list = [
-                    "build-and-test-develop-draat", "build-and-test-develop-file-store", 
-                    "build-and-test-develop-gateway", "build-and-test-develop-project-app", 
-                    "build-and-test-develop-ivon", "build-and-test-develop-projectmanagement", 
-                    "build-and-test-develop-usermanagement", "build-and-test-develop-winfrabase",
-                    "build-and-test-develop-winfrabase-converter", "build-and-test-develop-gns",
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-develop-draat", "deploy-develop-file-store", 
-                    "deploy-develop-gateway", "deploy-develop-project-app", 
-                    "deploy-develop-ivon", "deploy-develop-projectmanagement",
-                    "deploy-develop-usermanagement", "deploy-develop-winfrabase", 
-                    "deploy-develop-winfrabase-converter", "deploy-develop-gns",
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-e2e-develop-draat", "deploy-e2e-develop-file-store", 
-                    "deploy-e2e-develop-gateway", "deploy-e2e-develop-project-app",
-                    "deploy-e2e-develop-ivon", "deploy-e2e-develop-projectmanagement", 
-                    "deploy-e2e-develop-usermanagement", "deploy-e2e-develop-winfrabase", 
-                    "deploy-e2e-develop-winfrabase-converter", "deploy-e2e-develop-gns",
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "trigger-e2e-develop", "webportal-e2e-develop"
-                ]
-            else:  # bp-all-osraoa
-                target_list = [
-                    "build-and-test-develop-provesy-asphalt-mixture", "build-and-test-develop-provesy-backend-gateway",
-                    "build-and-test-develop-provesy-contract", "build-and-test-develop-provesy-event",
-                    "build-and-test-develop-provesy-fme-gateway", "build-and-test-develop-provesy-geo-gateway",
-                    "build-and-test-develop-provesy-ivon-gateway", "build-and-test-develop-provesy-master-data",
-                    "build-and-test-develop-provesy-pavement", "build-and-test-develop-provesy-test-section",
-                    "build-and-test-develop-provesy-warranty",
-                    "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-develop-provesy-asphalt-mixture", "deploy-develop-provesy-backend-gateway",
-                    "deploy-develop-provesy-contract", "deploy-develop-provesy-event",
-                    "deploy-develop-provesy-fme-gateway", "deploy-develop-provesy-geo-gateway",
-                    "deploy-develop-provesy-ivon-gateway", "deploy-develop-provesy-master-data",
-                    "deploy-develop-provesy-pavement", "deploy-develop-provesy-test-section",
-                    "deploy-develop-provesy-warranty",
-                    "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-e2e-develop-provesy-asphalt-mixture", "deploy-e2e-develop-provesy-backend-gateway",
-                    "deploy-e2e-develop-provesy-contract", "deploy-e2e-develop-provesy-event",
-                    "deploy-e2e-develop-provesy-fme-gateway", "deploy-e2e-develop-provesy-geo-gateway",
-                    "deploy-e2e-develop-provesy-ivon-gateway", "deploy-e2e-develop-provesy-master-data",
-                    "deploy-e2e-develop-provesy-pavement", "deploy-e2e-develop-provesy-test-section",
-                    "deploy-e2e-develop-provesy-warranty",
-                    "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "trigger-e2e-develop", "webportal-e2e-develop"
-                ]
-
-            if job_name in target_list:
-                idx = target_list.index(job_name)
-                return (x_offset + (idx // 8), idx % 8)
-
-        # --- CYCLE 1: MASTER ---
+            mapping = WP_DEV_MAP if is_wp else BP_DEV_MAP
         elif effective_cycle == 1:
-            if is_wp:
-                target_list = [
-                    "build-and-test-draat", "build-and-test-file-store", 
-                    "build-and-test-gateway", "build-and-test-project-app", 
-                    "build-and-test-ivon", "build-and-test-projectmanagement", 
-                    "build-and-test-usermanagement", "build-and-test-winfrabase",
-                    "build-and-test-winfrabase-converter", "build-and-test-gns",
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-e2e-master-draat", "deploy-e2e-master-file-store", 
-                    "deploy-e2e-master-gateway", "deploy-e2e-master-project-app", 
-                    "deploy-e2e-master-ivon", "deploy-e2e-master-projectmanagement",
-                    "deploy-e2e-master-usermanagement", "deploy-e2e-master-winfrabase", 
-                    "deploy-e2e-master-winfrabase-converter", "deploy-e2e-master-gns",
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "trigger-e2e-master", "webportal-e2e", "dummy", "dummy", "dummy", "dummy", "dummy", "redeploy-ontwikkel"
-                ]
-            else:  # bp-all-osraoa
-                target_list = [
-                    "build-and-test-provesy-asphalt-mixture", "build-and-test-provesy-backend-gateway",
-                    "build-and-test-provesy-contract", "build-and-test-provesy-event",
-                    "build-and-test-provesy-fme-gateway", "build-and-test-provesy-geo-gateway",
-                    "build-and-test-provesy-ivon-gateway", "build-and-test-provesy-master-data",
-                    "build-and-test-provesy-pavement", "build-and-test-provesy-test-section",
-                    "build-and-test-provesy-warranty",
-                    "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-e2e-master-provesy-asphalt-mixture", "deploy-e2e-master-provesy-backend-gateway",
-                    "deploy-e2e-master-provesy-contract", "deploy-e2e-master-provesy-event",
-                    "deploy-e2e-master-provesy-fme-gateway", "deploy-e2e-master-provesy-geo-gateway",
-                    "deploy-e2e-master-provesy-ivon-gateway", "deploy-e2e-master-provesy-master-data",
-                    "deploy-e2e-master-provesy-pavement", "deploy-e2e-master-provesy-test-section",
-                    "deploy-e2e-master-provesy-warranty",
-                    "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "trigger-e2e-master", "webportal-e2e", "dummy", "dummy", "dummy", "dummy", "dummy", "redeploy-ontwikkel"
-                ]
-
-            if job_name in target_list:
-                idx = target_list.index(job_name)
-                return (x_offset + (idx // 8), idx % 8)
-
-        # --- CYCLE 2: DEPLOYS & APPS ---
+            mapping = WP_MASTER_MAP if is_wp else BP_MASTER_MAP
         elif effective_cycle == 2:
-            if is_wp:
-                target_list = [
-                    "deploy-pr", "deploy-pr-wbc", 
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-test", "deploy-test-wbc", 
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-acceptance", "deploy-acceptance-wbc", 
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-production", "deploy-production-wb", "deploy-production-wbc"
-                ]
-            else:  # bp-all-osraoa
-                target_list = [
-                    "deploy-pr",
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-test", 
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-acceptance", 
-                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
-                    "deploy-production"
-                ]
+            mapping = WP_DEPLOY_MAP if is_wp else BP_DEPLOY_MAP
+        else:
+            mapping = {}
 
-            if job_name in target_list:
-                idx = target_list.index(job_name)
-                return (x_offset + (idx // 8), idx % 8)
+        if job_name in mapping:
+            idx = mapping[job_name]
+            return (x_offset + (idx // 8), idx % 8)
 
     return None
 

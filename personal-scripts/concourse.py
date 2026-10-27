@@ -10,6 +10,7 @@ apiBase = "https://slack.com/api/"
 #see secrets.md for token details
 accessToken = "Bearer token"
 
+
 # Kleuren definities (Hex-waardes voor de LumiCube)
 succeededColour = 0x00ff00  # Groen
 erroredColour   = 0xffc099
@@ -116,75 +117,14 @@ monitoredSpecial = [
 ]
 
 monitoredJobs = [
-    "build-and-test-develop-draat", 
-    "build-and-test-develop-file-store", 
-    "build-and-test-develop-gateway", 
-    "build-and-test-develop-ivon", 
-    "build-and-test-develop-project-app", 
-    "build-and-test-develop-projectmanagement", 
-    "build-and-test-develop-usermanagement", 
-    "build-and-test-develop-winfrabase",
-    
-    "deploy-develop-draat", 
-    "deploy-develop-file-store", 
-    "deploy-develop-gateway", 
-    "deploy-develop-ivon", 
-    "deploy-develop-project-app", 
-    "deploy-develop-projectmanagement", 
-    "deploy-develop-usermanagement",
-    "deploy-develop-winfrabase", 
-
-    "deploy-e2e-develop-draat", 
-    "deploy-e2e-develop-file-store", 
-    "deploy-e2e-develop-gateway", 
-    "deploy-e2e-develop-ivon", 
-    "deploy-e2e-develop-project-app", 
-    "deploy-e2e-develop-projectmanagement",
-    "deploy-e2e-develop-usermanagement", 
-    "deploy-e2e-develop-winfrabase",
-    
-    "trigger-e2e-develop", 
-    "webportal-e2e-develop", 
-    "dummy", 
-    "dummy", 
-    "dummy", 
-    "dummy", 
-    "dummy", 
-    "redeploy-ontwikkel",
-    
-    "build-and-test-draat", 
-    "build-and-test-file-store", 
-    "build-and-test-gateway", 
-    "build-and-test-ivon", 
-    "build-and-test-project-app", 
-    "build-and-test-projectmanagement", 
-    "build-and-test-usermanagement", 
-    "build-and-test-winfrabase", 
-    
-    "deploy-e2e-master-draat", 
-    "deploy-e2e-master-file-store", 
-    "deploy-e2e-master-gateway", 
-    "deploy-e2e-master-ivon", 
-    "deploy-e2e-master-project-app", 
-    "deploy-e2e-master-projectmanagement", 
-    "deploy-e2e-master-usermanagement", 
-    "deploy-e2e-master-winfrabase", 
-
-    "dummy", 
-    "dummy", 
-    "dummy", 
-    "build-and-test-develop-winfrabase-converter", 
-    "deploy-develop-winfrabase-converter", 
-    "deploy-e2e-develop-winfrabase-converter", 
-    "build-and-test-winfrabase-converter", 
-    "deploy-e2e-master-winfrabase-converter", 
-    
-    "trigger-e2e-master", 
-    "webportal-e2e", 
-    "deploy-pr", 
-    "deploy-test", 
-    "deploy-acceptance", 
-    "deploy-production"
+    "build-and-test-develop-draat", "build-and-test-develop-file-store", "build-and-test-develop-gateway", "build-and-test-develop-ivon", "build-and-test-develop-project-app", "build-and-test-develop-projectmanagement", "build-and-test-develop-usermanagement", "build-and-test-develop-winfrabase",
+    "deploy-develop-draat", "deploy-develop-file-store", "deploy-develop-gateway", "deploy-develop-ivon", "deploy-develop-project-app", "deploy-develop-projectmanagement", "deploy-develop-usermanagement", "deploy-develop-winfrabase", 
+    "deploy-e2e-develop-draat", "deploy-e2e-develop-file-store", "deploy-e2e-develop-gateway", "deploy-e2e-develop-ivon", "deploy-e2e-develop-project-app", "deploy-e2e-develop-projectmanagement", "deploy-e2e-develop-usermanagement", "deploy-e2e-develop-winfrabase",
+    "trigger-e2e-develop", "webportal-e2e-develop", "dummy", "dummy", "dummy", "dummy", "dummy", "redeploy-ontwikkel",
+    "build-and-test-draat", "build-and-test-file-store", "build-and-test-gateway", "build-and-test-ivon", "build-and-test-project-app", "build-and-test-projectmanagement", "build-and-test-usermanagement", "build-and-test-winfrabase", 
+    "deploy-e2e-master-draat", "deploy-e2e-master-file-store", "deploy-e2e-master-gateway", "deploy-e2e-master-ivon", "deploy-e2e-master-project-app", "deploy-e2e-master-projectmanagement", "deploy-e2e-master-usermanagement", "deploy-e2e-master-winfrabase", 
+    "dummy", "dummy", "dummy", "build-and-test-develop-winfrabase-converter", "deploy-develop-winfrabase-converter", "deploy-e2e-develop-winfrabase-converter", "build-and-test-winfrabase-converter", "deploy-e2e-master-winfrabase-converter", 
+    "trigger-e2e-master", "webportal-e2e", "deploy-pr", "deploy-test", "deploy-acceptance", "deploy-production"
 ]
 
 monitoredPrJobs = [
@@ -208,18 +148,9 @@ def get_pipeline_group_position(pipeline_name):
     return None
     
 def animate():
-    global alternate
-    global alternate_yellow
-    global alternate_slow
-    global slow_counter
-    global slow_counter_yellow
-    global heartbeat_timer
-    global heartbeat_counter
-    global vorige_kleuren
-    global geluid_afgespeeld
-    global ververs_alles
-    global active_cycle
-    global group_timer
+    global alternate, alternate_yellow, alternate_slow, slow_counter, slow_counter_yellow
+    global heartbeat_timer, heartbeat_counter, vorige_kleuren, geluid_afgespeeld
+    global ververs_alles, active_cycle, group_timer
 
     slow_counter += 1
     if slow_counter >= 2:
@@ -236,7 +167,7 @@ def animate():
         build_pipeline_column_map()
         getData()
 
-        # HELE VOORKANT (Links én Rechts: x: 0 t/m 15, y: 0 t/m 7) volledig opschonen bij wisseling
+        # Volledige voorkant (x: 0 t/m 15, y: 0 t/m 7) opschonen bij wisseling
         for x in range(0, 16):
             for y in range(8):
                 display.set_led(x, y, black)
@@ -245,7 +176,6 @@ def animate():
         ververs_alles = True
         group_timer = 0
 
-    # Error Screen
     if isError:
         error_colour = red if alternate else black
         display.set_panel("right", [[error_colour] * 8] * 8)
@@ -270,31 +200,23 @@ def animate():
                 pass
             geluid_afgespeeld = False
 
-        # Teken alle jobs
         for (x, y), status_dict in data.items():
             status = str(status_dict.get("current", "")).lower()
             next_status = str(status_dict.get("next", "")).lower()
 
             if status == "started" or next_status == "started":
-                current_colour = (
-                    startedColour if alternate_yellow else getColour(status_dict.get("current"))
-                )
+                current_colour = startedColour if alternate_yellow else getColour(status_dict.get("current"))
             elif "next" in status_dict:
-                current_colour = getColour(
-                    status_dict["next"] if alternate else status_dict["current"]
-                )
+                current_colour = getColour(status_dict["next"] if alternate else status_dict["current"])
             elif status == "paused":
                 current_colour = pausedColour if alternate_slow else black
             else:
                 current_colour = getColour(status_dict["current"])
 
-            target_x = x
+            if ververs_alles or vorige_kleuren.get((x, y)) != current_colour:
+                display.set_led(x, y, current_colour)
+                vorige_kleuren[(x, y)] = current_colour
 
-            if ververs_alles or vorige_kleuren.get((target_x, y)) != current_colour:
-                display.set_led(target_x, y, current_colour)
-                vorige_kleuren[(target_x, y)] = current_colour
-
-        # Heartbeat
         heartbeat_timer += 1
         if heartbeat_timer >= 2:
             heartbeat_counter = (heartbeat_counter + 1) % 12
@@ -319,12 +241,10 @@ def animate():
         ververs_alles = False
 
     alternate = not alternate
-    
+
 
 def process_jobs(jobsJson):
-    global data
-    global pipelines
-    global ververs_alles
+    global data, pipelines, ververs_alles
 
     if not jobsJson or not isinstance(jobsJson, dict):
         return False
@@ -332,8 +252,7 @@ def process_jobs(jobsJson):
     tijdelijke_data = {}
     paused_columns = set()
 
-    pipelines_lijst = jobsJson.get("pipelines", [])
-    for pipeline in pipelines_lijst:
+    for pipeline in jobsJson.get("pipelines", []):
         p_name = pipeline.get("name", "").lower()
         if pipeline.get("paused") is not True:
             continue
@@ -341,8 +260,7 @@ def process_jobs(jobsJson):
         if col is not None:
             paused_columns.add(col)
 
-    jobs_lijst = jobsJson.get("jobs", [])
-    for job in jobs_lijst:
+    for job in jobsJson.get("jobs", []):
         if not isinstance(job, dict):
             continue
 
@@ -470,16 +388,19 @@ def get_job_coordinates(pipeline_name, job_name):
                     "build-and-test-develop-ivon", "build-and-test-develop-projectmanagement", 
                     "build-and-test-develop-usermanagement", "build-and-test-develop-winfrabase",
                     "build-and-test-develop-winfrabase-converter", "build-and-test-develop-gns",
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
                     "deploy-develop-draat", "deploy-develop-file-store", 
                     "deploy-develop-gateway", "deploy-develop-project-app", 
                     "deploy-develop-ivon", "deploy-develop-projectmanagement",
                     "deploy-develop-usermanagement", "deploy-develop-winfrabase", 
                     "deploy-develop-winfrabase-converter", "deploy-develop-gns",
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
                     "deploy-e2e-develop-draat", "deploy-e2e-develop-file-store", 
                     "deploy-e2e-develop-gateway", "deploy-e2e-develop-project-app",
                     "deploy-e2e-develop-ivon", "deploy-e2e-develop-projectmanagement", 
                     "deploy-e2e-develop-usermanagement", "deploy-e2e-develop-winfrabase", 
                     "deploy-e2e-develop-winfrabase-converter", "deploy-e2e-develop-gns",
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
                     "trigger-e2e-develop", "webportal-e2e-develop"
                 ]
             else:  # bp-all-osraoa
@@ -490,18 +411,21 @@ def get_job_coordinates(pipeline_name, job_name):
                     "build-and-test-develop-provesy-ivon-gateway", "build-and-test-develop-provesy-master-data",
                     "build-and-test-develop-provesy-pavement", "build-and-test-develop-provesy-test-section",
                     "build-and-test-develop-provesy-warranty",
+                    "dummy", "dummy", "dummy", "dummy", "dummy",
                     "deploy-develop-provesy-asphalt-mixture", "deploy-develop-provesy-backend-gateway",
                     "deploy-develop-provesy-contract", "deploy-develop-provesy-event",
                     "deploy-develop-provesy-fme-gateway", "deploy-develop-provesy-geo-gateway",
                     "deploy-develop-provesy-ivon-gateway", "deploy-develop-provesy-master-data",
                     "deploy-develop-provesy-pavement", "deploy-develop-provesy-test-section",
                     "deploy-develop-provesy-warranty",
+                    "dummy", "dummy", "dummy", "dummy", "dummy",
                     "deploy-e2e-develop-provesy-asphalt-mixture", "deploy-e2e-develop-provesy-backend-gateway",
                     "deploy-e2e-develop-provesy-contract", "deploy-e2e-develop-provesy-event",
                     "deploy-e2e-develop-provesy-fme-gateway", "deploy-e2e-develop-provesy-geo-gateway",
                     "deploy-e2e-develop-provesy-ivon-gateway", "deploy-e2e-develop-provesy-master-data",
                     "deploy-e2e-develop-provesy-pavement", "deploy-e2e-develop-provesy-test-section",
                     "deploy-e2e-develop-provesy-warranty",
+                    "dummy", "dummy", "dummy", "dummy", "dummy",
                     "trigger-e2e-develop", "webportal-e2e-develop"
                 ]
 
@@ -518,12 +442,14 @@ def get_job_coordinates(pipeline_name, job_name):
                     "build-and-test-ivon", "build-and-test-projectmanagement", 
                     "build-and-test-usermanagement", "build-and-test-winfrabase",
                     "build-and-test-winfrabase-converter", "build-and-test-gns",
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
                     "deploy-e2e-master-draat", "deploy-e2e-master-file-store", 
                     "deploy-e2e-master-gateway", "deploy-e2e-master-project-app", 
                     "deploy-e2e-master-ivon", "deploy-e2e-master-projectmanagement",
                     "deploy-e2e-master-usermanagement", "deploy-e2e-master-winfrabase", 
                     "deploy-e2e-master-winfrabase-converter", "deploy-e2e-master-gns",
-                    "trigger-e2e-master", "webportal-e2e"
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+                    "trigger-e2e-master", "webportal-e2e", "dummy", "dummy", "dummy", "dummy", "dummy", "redeploy-ontwikkel"
                 ]
             else:  # bp-all-osraoa
                 target_list = [
@@ -533,13 +459,15 @@ def get_job_coordinates(pipeline_name, job_name):
                     "build-and-test-provesy-ivon-gateway", "build-and-test-provesy-master-data",
                     "build-and-test-provesy-pavement", "build-and-test-provesy-test-section",
                     "build-and-test-provesy-warranty",
+                    "dummy", "dummy", "dummy", "dummy", "dummy",
                     "deploy-e2e-master-provesy-asphalt-mixture", "deploy-e2e-master-provesy-backend-gateway",
                     "deploy-e2e-master-provesy-contract", "deploy-e2e-master-provesy-event",
                     "deploy-e2e-master-provesy-fme-gateway", "deploy-e2e-master-provesy-geo-gateway",
                     "deploy-e2e-master-provesy-ivon-gateway", "deploy-e2e-master-provesy-master-data",
                     "deploy-e2e-master-provesy-pavement", "deploy-e2e-master-provesy-test-section",
                     "deploy-e2e-master-provesy-warranty",
-                    "trigger-e2e-master", "webportal-e2e"
+                    "dummy", "dummy", "dummy", "dummy", "dummy",
+                    "trigger-e2e-master", "webportal-e2e", "dummy", "dummy", "dummy", "dummy", "dummy", "redeploy-ontwikkel"
                 ]
 
             if job_name in target_list:
@@ -551,13 +479,22 @@ def get_job_coordinates(pipeline_name, job_name):
             if is_wp:
                 target_list = [
                     "deploy-pr", "deploy-pr-wbc", 
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
                     "deploy-test", "deploy-test-wbc", 
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
                     "deploy-acceptance", "deploy-acceptance-wbc", 
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
                     "deploy-production", "deploy-production-wb", "deploy-production-wbc"
                 ]
             else:  # bp-all-osraoa
                 target_list = [
-                    "deploy-pr", "deploy-test", "deploy-acceptance", "deploy-production"
+                    "deploy-pr",
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+                    "deploy-test", 
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+                    "deploy-acceptance", 
+                    "dummy", "dummy", "dummy", "dummy", "dummy", "dummy", "dummy",
+                    "deploy-production"
                 ]
 
             if job_name in target_list:

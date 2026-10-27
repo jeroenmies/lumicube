@@ -48,17 +48,20 @@ ververs_alles = True  # Start op True voor de eerste run
 
 # --- GLOBALE ANIMATIE VARIABELEN
 alternate = True        # Voor de 'next' wissels (0.5s)
-alternate_yellow = True # NIEUW: Voor started/geel (2.0s - factor 4 langzamer)
+alternate_yellow = True # Voor started/geel (2.0s)
 alternate_slow = True   # Voor paused/blauw (1.0s)
 
 slow_counter = 0        # Teller voor blauw
-slow_counter_yellow = 0 # NIEUW: Teller voor geel
-heartbeat_timer = 0     # NIEUW: Vertrager voor de hartslag (1 stap per seconde)
+slow_counter_yellow = 0 # Teller voor geel
+heartbeat_timer = 0     # Vertrager voor de hartslag
 heartbeat_counter = 0   # De 12 paarsstappen
 
 # ============================================================================
-# RECHTERPANEEL CARROUSEL
+# CYCLI & CARROUSEL CONFIGURATIE
 # ============================================================================
+active_cycle = 0
+GROUP_SWITCH_CYCLES = 20
+group_timer = 0
 
 PIPELINE_GROUPS = [
     [
@@ -93,176 +96,18 @@ PIPELINE_GROUPS = [
     ]
 ]
 
-LEFT_PANEL_GROUPS = [
-    # =========================================================================
-    # CYCLE 1 - DEVELOP
-    # =========================================================================
-    [
-        "build-and-test-develop-draat",
-        "build-and-test-develop-file-store",
-        "build-and-test-develop-gateway",
-        "build-and-test-develop-ivon",
-        "build-and-test-develop-project-app",
-        "build-and-test-develop-projectmanagement",
-        "build-and-test-develop-usermanagement",
-        "build-and-test-develop-winfrabase",
-
-        "deploy-e2e-develop-draat",
-        "deploy-e2e-develop-file-store",
-        "deploy-e2e-develop-gateway",
-        "deploy-e2e-develop-ivon",
-        "deploy-e2e-develop-project-app",
-        "deploy-e2e-develop-projectmanagement",
-        "deploy-e2e-develop-usermanagement",
-        "deploy-e2e-develop-winfrabase",
-
-        "deploy-develop-draat",
-        "deploy-develop-file-store",
-        "deploy-develop-gateway",
-        "deploy-develop-ivon",
-        "deploy-develop-project-app",
-        "deploy-develop-projectmanagement",
-        "deploy-develop-usermanagement",
-        "deploy-develop-winfrabase",
-
-        "build-and-test-develop-winfrabase-converter",
-        "deploy-e2e-develop-winfrabase-converter",
-        "deploy-develop-winfrabase-converter",
-
-        "build-and-test-develop-provesy-asphalt-mixture",
-        "build-and-test-develop-provesy-backend-gateway",
-        "build-and-test-develop-provesy-contract",
-        "build-and-test-develop-provesy-event",
-        "build-and-test-develop-provesy-fme-gateway",
-        "build-and-test-develop-provesy-geo-gateway",
-        "build-and-test-develop-provesy-ivon-gateway",
-        "build-and-test-develop-provesy-master-data",
-        "build-and-test-develop-provesy-pavement",
-        "build-and-test-develop-provesy-test-section",
-        "build-and-test-develop-provesy-warranty",
-
-        "deploy-e2e-develop-provesy-asphalt-mixture",
-        "deploy-e2e-develop-provesy-backend-gateway",
-        "deploy-e2e-develop-provesy-contract",
-        "deploy-e2e-develop-provesy-event",
-        "deploy-e2e-develop-provesy-fme-gateway",
-        "deploy-e2e-develop-provesy-geo-gateway",
-        "deploy-e2e-develop-provesy-ivon-gateway",
-        "deploy-e2e-develop-provesy-master-data",
-        "deploy-e2e-develop-provesy-pavement",
-        "deploy-e2e-develop-provesy-test-section",
-        "deploy-e2e-develop-provesy-warranty",
-
-        "deploy-develop-provesy-asphalt-mixture",
-        "deploy-develop-provesy-backend-gateway",
-        "deploy-develop-provesy-contract",
-        "deploy-develop-provesy-event",
-        "deploy-develop-provesy-fme-gateway",
-        "deploy-develop-provesy-geo-gateway",
-        "deploy-develop-provesy-ivon-gateway",
-        "deploy-develop-provesy-master-data",
-        "deploy-develop-provesy-pavement",
-        "deploy-develop-provesy-test-section",
-        "deploy-develop-provesy-warranty"
-    ],
-
-    # =========================================================================
-    # CYCLE 2 - MASTER
-    # =========================================================================
-    [
-        "build-and-test-draat",
-        "build-and-test-file-store",
-        "build-and-test-gateway",
-        "build-and-test-ivon",
-        "build-and-test-project-app",
-        "build-and-test-projectmanagement",
-        "build-and-test-usermanagement",
-        "build-and-test-winfrabase",
-        "build-and-test-winfrabase-converter",
-
-        "build-and-test-provesy-asphalt-mixture",
-        "build-and-test-provesy-backend-gateway",
-        "build-and-test-provesy-contract",
-        "build-and-test-provesy-event",
-        "build-and-test-provesy-fme-gateway",
-        "build-and-test-provesy-geo-gateway",
-        "build-and-test-provesy-ivon-gateway",
-        "build-and-test-provesy-master-data",
-        "build-and-test-provesy-pavement",
-        "build-and-test-provesy-test-section",
-        "build-and-test-provesy-warranty",
-
-        "deploy-e2e-master-draat",
-        "deploy-e2e-master-file-store",
-        "deploy-e2e-master-gateway",
-        "deploy-e2e-master-ivon",
-        "deploy-e2e-master-project-app",
-        "deploy-e2e-master-projectmanagement",
-        "deploy-e2e-master-usermanagement",
-        "deploy-e2e-master-winfrabase",
-        "deploy-e2e-master-winfrabase-converter",
-
-        "deploy-e2e-master-provesy-asphalt-mixture",
-        "deploy-e2e-master-provesy-backend-gateway",
-        "deploy-e2e-master-provesy-contract",
-        "deploy-e2e-master-provesy-event",
-        "deploy-e2e-master-provesy-fme-gateway",
-        "deploy-e2e-master-provesy-geo-gateway",
-        "deploy-e2e-master-provesy-ivon-gateway",
-        "deploy-e2e-master-provesy-master-data",
-        "deploy-e2e-master-provesy-pavement",
-        "deploy-e2e-master-provesy-test-section",
-        "deploy-e2e-master-provesy-warranty"
-    ],
-
-    # =========================================================================
-    # CYCLE 3 - APPS
-    # =========================================================================
-    [
-        "pipeline-apps-all:trigger-e2e-develop",
-        "pipeline-apps-all:webportal-e2e-develop",
-        "pipeline-apps-all:trigger-e2e-master",
-        "pipeline-apps-all:webportal-e2e",
-        "pipeline-apps-all:deploy-pr",
-        "pipeline-apps-all:deploy-test",
-        "pipeline-apps-all:deploy-acceptance",
-        "pipeline-apps-all:deploy-production",
-
-        "pipeline-apps-all-bp:trigger-e2e-develop",
-        "pipeline-apps-all-bp:webportal-e2e-develop",
-        "pipeline-apps-all-bp:trigger-e2e-master",
-        "pipeline-apps-all-bp:webportal-e2e",
-        "pipeline-apps-all-bp:deploy-pr",
-        "pipeline-apps-all-bp:deploy-test",
-        "pipeline-apps-all-bp:deploy-acceptance",
-        "pipeline-apps-all-bp:deploy-production"
-    ]
-]
-
-ALL_CAROUSEL_PIPELINES = {}
-
-for group in PIPELINE_GROUPS:
-    for idx, pipeline in enumerate(group):
-        ALL_CAROUSEL_PIPELINES[pipeline] = idx
-        
-active_group = 0
-
-GROUP_SWITCH_SECONDS = 10
-GROUP_SWITCH_CYCLES = 20
-
-group_timer = 0
+pipeline_column_map = {} 
 
 def build_pipeline_column_map():
     global pipeline_column_map
-
-    pipeline_column_map = {
-        pipeline: 8 + idx
-        for idx, pipeline in enumerate(
-            PIPELINE_GROUPS[active_group]
-        )
-    }
-        
-pipeline_column_map = {} 
+    if active_cycle >= 3:
+        group_idx = active_cycle - 3
+        pipeline_column_map = {
+            pipeline: 8 + idx
+            for idx, pipeline in enumerate(PIPELINE_GROUPS[group_idx])
+        }
+    else:
+        pipeline_column_map = {}
 
 build_pipeline_column_map()
 
@@ -373,68 +218,37 @@ def animate():
     global vorige_kleuren
     global geluid_afgespeeld
     global ververs_alles
-
-    global active_group
+    global active_cycle
     global group_timer
 
-    # ==========================================================
-    # TIMER BLAUW (paused)
-    # ==========================================================
     slow_counter += 1
-
     if slow_counter >= 2:
         slow_counter = 0
 
-    # ==========================================================
-    # TIMER GEEL (started)
-    # ==========================================================
     slow_counter_yellow += 1
-
     if slow_counter_yellow >= 4:
         alternate_yellow = not alternate_yellow
         slow_counter_yellow = 0
 
-    # ==========================================================
-    # RECHTERPANEEL CARROUSEL
-    # ==========================================================
     group_timer += 1
-
     if group_timer >= GROUP_SWITCH_CYCLES:
-        active_group = (
-            active_group + 1
-        ) % len(PIPELINE_GROUPS)
-    
+        active_cycle = (active_cycle + 1) % 6
         build_pipeline_column_map()
-    
         getData()
 
-        for x in range(8, 16):
+        # HELE VOORKANT (Links én Rechts: x: 0 t/m 15, y: 0 t/m 7) volledig opschonen bij wisseling
+        for x in range(0, 16):
             for y in range(8):
-                display.set_led(
-                    x,
-                    y,
-                    black
-                )
-
-                vorige_kleuren.pop(
-                    (x, y),
-                    None
-                )
+                display.set_led(x, y, black)
+                vorige_kleuren.pop((x, y), None)
     
         ververs_alles = True
         group_timer = 0
 
-    # ==========================================================
-    # ERROR SCREEN
-    # ==========================================================
+    # Error Screen
     if isError:
         error_colour = red if alternate else black
-
-        display.set_panel(
-            "right",
-            [[error_colour] * 8] * 8
-        )
-
+        display.set_panel("right", [[error_colour] * 8] * 8)
         vorige_kleuren.clear()
         ververs_alles = True
 
@@ -442,97 +256,48 @@ def animate():
             try:
                 for frequency in range(400, 1200, 100):
                     speaker.tone(frequency, 0.02)
-
                 speaker.say("Pipeline error detected")
             except Exception:
                 pass
-
             geluid_afgespeeld = True
     else:
         if geluid_afgespeeld:
             try:
-                display.set_panel(
-                    "right",
-                    [[black] * 8] * 8
-                )
+                display.set_panel("right", [[black] * 8] * 8)
                 vorige_kleuren.clear()
                 ververs_alles = True
             except Exception:
                 pass
-
             geluid_afgespeeld = False
 
-        # ======================================================
-        # TEKEN ALLE JOBS
-        # ======================================================
+        # Teken alle jobs
         for (x, y), status_dict in data.items():
-            if x >= 8:
-                zichtbare_kolommen = range(8, 16)
-                if x not in zichtbare_kolommen:
-                    continue
-                
-            status = str(
-                status_dict.get("current", "")
-            ).lower()
+            status = str(status_dict.get("current", "")).lower()
+            next_status = str(status_dict.get("next", "")).lower()
 
-            next_status = str(
-                status_dict.get("next", "")
-            ).lower()
-
-            # started -> geel knipperen
             if status == "started" or next_status == "started":
                 current_colour = (
-                    startedColour
-                    if alternate_yellow
-                    else getColour(
-                        status_dict.get("current")
-                    )
+                    startedColour if alternate_yellow else getColour(status_dict.get("current"))
                 )
-            # next status aanwezig
             elif "next" in status_dict:
                 current_colour = getColour(
-                    status_dict["next"]
-                    if alternate
-                    else status_dict["current"]
+                    status_dict["next"] if alternate else status_dict["current"]
                 )
-            # paused
             elif status == "paused":
-                current_colour = (
-                    pausedColour
-                    if alternate_slow
-                    else black
-                )
-            # stabiele status
+                current_colour = pausedColour if alternate_slow else black
             else:
-                current_colour = getColour(
-                    status_dict["current"]
-                )
+                current_colour = getColour(status_dict["current"])
 
             target_x = x
 
-            if (
-                ververs_alles
-                or vorige_kleuren.get((target_x, y))
-                != current_colour
-            ):
-                display.set_led(
-                    target_x,
-                    y,
-                    current_colour
-                )
-
+            if ververs_alles or vorige_kleuren.get((target_x, y)) != current_colour:
+                display.set_led(target_x, y, current_colour)
                 vorige_kleuren[(target_x, y)] = current_colour
 
-        # ======================================================
-        # HEARTBEAT
-        # ======================================================
+        # Heartbeat
         heartbeat_timer += 1
-
         if heartbeat_timer >= 2:
-            heartbeat_counter = (
-                heartbeat_counter + 1
-            ) % 12
-
+            heartbeat_counter = (heartbeat_counter + 1) % 12
             heartbeat_timer = 0
 
             if heartbeat_counter in (0, 6):
@@ -548,18 +313,13 @@ def animate():
             else:
                 heartbeat_colour = 0x660099
 
-            display.set_led(
-                7,
-                8,
-                heartbeat_colour
-            )
-
+            display.set_led(7, 8, heartbeat_colour)
             vorige_kleuren[(7, 8)] = heartbeat_colour
 
         ververs_alles = False
 
     alternate = not alternate
-
+    
 
 def process_jobs(jobsJson):
     global data
@@ -572,26 +332,16 @@ def process_jobs(jobsJson):
     tijdelijke_data = {}
     paused_columns = set()
 
-    # --------------------------------------------------------
-    # PIPELINES OP PAUSE
-    # --------------------------------------------------------
     pipelines_lijst = jobsJson.get("pipelines", [])
-
     for pipeline in pipelines_lijst:
         p_name = pipeline.get("name", "").lower()
         if pipeline.get("paused") is not True:
             continue
-
         col = get_pipeline_group_position(p_name)
-
         if col is not None:
             paused_columns.add(col)
 
-    # --------------------------------------------------------
-    # JOBS
-    # --------------------------------------------------------
     jobs_lijst = jobsJson.get("jobs", [])
-
     for job in jobs_lijst:
         if not isinstance(job, dict):
             continue
@@ -599,104 +349,53 @@ def process_jobs(jobsJson):
         pipelineName = job.get("pipeline_name", "")
         jobName = job.get("name", "")
 
-        coords = get_job_coordinates(
-            pipelineName,
-            jobName
-        )
-
+        coords = get_job_coordinates(pipelineName, jobName)
         if coords is None:
             continue
 
         xIndex, yIndex = coords
-
-        if not (
-            0 <= xIndex <= 15
-            and
-            0 <= yIndex <= 15
-        ):
+        if not (0 <= xIndex <= 15 and 0 <= yIndex <= 15):
             continue
 
-        pipes = pipelines.setdefault(
-            pipelineName,
-            {}
-        )
-
+        pipes = pipelines.setdefault(pipelineName, {})
         if (xIndex, yIndex) not in tijdelijke_data:
             tijdelijke_data[(xIndex, yIndex)] = {}
 
-        # ----------------------------------------------------
-        # PAUSED JOB
-        # ----------------------------------------------------
         if job.get("paused") is True:
             tijdelijke_data[(xIndex, yIndex)]["current"] = "paused"
-
             pipes[yIndex] = "paused"
-
-            col = get_pipeline_group_position(
-                pipelineName.lower()
-            )
-
+            col = get_pipeline_group_position(pipelineName.lower())
             if col is not None:
                 paused_columns.add(col)
-
             continue
 
-        # ----------------------------------------------------
-        # NEXT BUILD
-        # ----------------------------------------------------
         next_build = job.get("next_build")
-
-        if (
-            next_build
-            and
-            next_build.get("status") == "started"
-        ):
+        if next_build and next_build.get("status") == "started":
             tijdelijke_data[(xIndex, yIndex)]["next"] = "started"
-
             pipes[yIndex] = "started"
 
-        # ----------------------------------------------------
-        # CURRENT BUILD
-        # ----------------------------------------------------
-        finished_build = (
-            job.get("finished_build")
-            or {}
-        )
-
-        status = finished_build.get(
-            "status",
-            "pending"
-        )
-
+        finished_build = job.get("finished_build") or {}
+        status = finished_build.get("status", "pending")
         tijdelijke_data[(xIndex, yIndex)]["current"] = status
-
         pipes[yIndex] = status
 
-    # --------------------------------------------------------
-    # PAUSE INDICATORS
-    # --------------------------------------------------------
     for paused_column in paused_columns:
-        tijdelijke_data[(paused_column, 6)] = {
-            "current": "paused"
-        }
+        tijdelijke_data[(paused_column, 6)] = {"current": "paused"}
 
     data = tijdelijke_data
     ververs_alles = True
-
     return True
 
 
 def get_job_coordinates(pipeline_name, job_name):
     p_name = pipeline_name.lower()
 
-    # ==========================================================================
     # 1. TOP PANEEL (x: 0-7, y: 8-15) -> Speciale Taken & Docker
-    # ==========================================================================
     if "aoa-docker" in p_name:
         docker_coordinates = {
-            "docker-build-aoa-concourse": (7, 13),            # DOCKER-A (onder)
-            "docker-build-aoa-concourse-postgresql": (7, 14), # DOCKER-B (midden)
-            "docker-build-aoa-concourse-containers": (7, 15)  # DOCKER-C (boven)
+            "docker-build-aoa-concourse": (7, 13),
+            "docker-build-aoa-concourse-postgresql": (7, 14),
+            "docker-build-aoa-concourse-containers": (7, 15)
         }
         return docker_coordinates.get(job_name)
 
@@ -710,12 +409,8 @@ def get_job_coordinates(pipeline_name, job_name):
     if "wp-tasks" in p_name:
         if job_name in monitoredSpecial:
             idx = monitoredSpecial.index(job_name)
-            
-            # Groep 1: Shutdowns (y: 8)
             if idx < 3:
                 return (idx, 8)
-                
-            # Groep 2: E2E Triggers & Stoppen (Aaneengesloten op y: 9 t/m 12)
             elif 7 <= idx <= 10:
                 return (3 + (idx - 7), 9)
             elif 12 <= idx <= 15:
@@ -724,86 +419,150 @@ def get_job_coordinates(pipeline_name, job_name):
                 return (3 + (idx - 16), 11)
             elif 20 <= idx <= 23:
                 return (3 + (idx - 20), 12)
-                
-            # Groep 3: Deploys & Rebuilds (Strak in kolom 0 en 1)
-            elif idx == 24: return (0, 14)  # deploy-pipeline-webportal-tasks
-            elif idx == 25: return (1, 14)  # deploy-pipelines
-            elif idx == 27: return (0, 15)  # stop-pr-pipelines
-            elif idx == 28: return (1, 15)  # start-pr-pipelines
-            elif idx == 30: return (0, 13)  # redeploy-apps
-            elif idx == 31: return (1, 13)  # rebuild-apps
-                
-            # Groep 4: GNS Cleardb (Rij 14) & GNS Tests (Rij 15)
-            elif 32 <= idx <= 34:  # gns-cleardb (ontwikkel, test, acceptatie)
-                return (3 + (idx - 32), 14) # Kolom 3, 4, 5 op rij 14
-            elif 36 <= idx <= 39:  # test-gns (ontwikkel, test, acc, prod)
-                return (3 + (idx - 36), 15) # Kolom 3, 4, 5, 6 op rij 15
-
+            elif idx == 24: return (0, 14)
+            elif idx == 25: return (1, 14)
+            elif idx == 27: return (0, 15)
+            elif idx == 28: return (1, 15)
+            elif idx == 30: return (0, 13)
+            elif idx == 31: return (1, 13)
+            elif 32 <= idx <= 34:
+                return (3 + (idx - 32), 14)
+            elif 36 <= idx <= 39:
+                return (3 + (idx - 36), 15)
         return None
 
-    # ==========================================================================
-    # 2. RECHTER PANEEL
-    # ==========================================================================
-    if (
-        "osrpraoa" in p_name
-        or "aoa-gns" in p_name
-        or "aoa-common" in p_name
-        or "aoa-gateway" in p_name
-        or "aoa-usermanagement" in p_name
-        or "wp-draat" in p_name
-        or "wp-file-store" in p_name
-        or "wp-projectmanagement" in p_name
-        or "wp-project-app" in p_name
-        or "wp-winfrabase" in p_name
-        or "wp-ivon" in p_name
-        or "provesy" in p_name
-    ):
-
-        xIndex = get_pipeline_group_position(
-            p_name
-        )
-        
-        if xIndex is None:
-            return None
+    # 2. RECHTER PANEEL (Tijdens Backend Carrousel: Cycli 3, 4, 5)
+    if active_cycle >= 3:
+        if any(b in p_name for b in ["osrpraoa", "aoa-gns", "aoa-common", "aoa-gateway", "aoa-usermanagement", "wp-draat", "wp-file-store", "wp-projectmanagement", "wp-project-app", "wp-winfrabase", "wp-ivon", "provesy"]):
+            xIndex = get_pipeline_group_position(p_name)
+            if xIndex is None:
+                return None
             
-        y_idx = None
+            y_idx = None
+            if job_name in monitoredPrJobs:
+                y_idx = min(monitoredPrJobs.index(job_name), 7)
+            elif job_name in monitoredJobs:
+                y_idx = min(monitoredJobs.index(job_name), 7)
+            elif job_name in monitoredGNSPrJobs:
+                y_idx = min(monitoredGNSPrJobs.index(job_name), 7)
+            elif job_name in monitoredGNSJobs:
+                y_idx = min(monitoredGNSJobs.index(job_name), 7)
 
-        if job_name in monitoredPrJobs:
-            y_idx = min(
-                monitoredPrJobs.index(job_name),
-                7
-            )
-        elif job_name in monitoredJobs:
-            y_idx = min(
-                monitoredJobs.index(job_name),
-                7
-            )
-        elif job_name in monitoredGNSPrJobs:
-            y_idx = min(
-                monitoredGNSPrJobs.index(job_name),
-                7
-            )
-        elif job_name in monitoredGNSJobs:
-            y_idx = min(
-                monitoredGNSJobs.index(job_name),
-                7
-            )
+            if y_idx is None:
+                return None
+            return (xIndex, y_idx)
 
-        if y_idx is None:
-            return None
+    # 3. APPS & DEPLOYS CYCLI (Cycli 0, 1, 2)
+    is_wp = ("wp-all" in p_name or "osraoa" in p_name) and "bp-all-osraoa" not in p_name
+    is_bp = "bp-all-osraoa" in p_name
 
-        return (xIndex, y_idx)
+    effective_cycle = active_cycle if active_cycle < 3 else 2
+
+    if is_wp or is_bp:
+        x_offset = 0 if is_wp else 8  # Links = 0-7, Rechts = 8-15
         
-    # ==========================================================================
-    # 3. LINKER PANEEL (x: 0-7, y: 0-7) -> wp-all-osraoa
-    # ==========================================================================
-    if ("wp-all" in p_name or "osraoa" in p_name) and "bp-all-osraoa" not in p_name:
-        if job_name in monitoredJobs:
-            idx = monitoredJobs.index(job_name)
-            if idx < 56:
-                return (idx // 8, idx % 8)
-            else:
-                return (7, min(idx - 56, 7))
+        # --- CYCLE 0: DEVELOP ---
+        if effective_cycle == 0:
+            if is_wp:
+                target_list = [
+                    "build-and-test-develop-draat", "build-and-test-develop-file-store", 
+                    "build-and-test-develop-gateway", "build-and-test-develop-project-app", 
+                    "build-and-test-develop-ivon", "build-and-test-develop-projectmanagement", 
+                    "build-and-test-develop-usermanagement", "build-and-test-develop-winfrabase",
+                    "build-and-test-develop-winfrabase-converter", "build-and-test-develop-gns",
+                    "deploy-develop-draat", "deploy-develop-file-store", 
+                    "deploy-develop-gateway", "deploy-develop-project-app", 
+                    "deploy-develop-ivon", "deploy-develop-projectmanagement",
+                    "deploy-develop-usermanagement", "deploy-develop-winfrabase", 
+                    "deploy-develop-winfrabase-converter", "deploy-develop-gns",
+                    "deploy-e2e-develop-draat", "deploy-e2e-develop-file-store", 
+                    "deploy-e2e-develop-gateway", "deploy-e2e-develop-project-app",
+                    "deploy-e2e-develop-ivon", "deploy-e2e-develop-projectmanagement", 
+                    "deploy-e2e-develop-usermanagement", "deploy-e2e-develop-winfrabase", 
+                    "deploy-e2e-develop-winfrabase-converter", "deploy-e2e-develop-gns",
+                    "trigger-e2e-develop", "webportal-e2e-develop"
+                ]
+            else:  # bp-all-osraoa
+                target_list = [
+                    "build-and-test-develop-provesy-asphalt-mixture", "build-and-test-develop-provesy-backend-gateway",
+                    "build-and-test-develop-provesy-contract", "build-and-test-develop-provesy-event",
+                    "build-and-test-develop-provesy-fme-gateway", "build-and-test-develop-provesy-geo-gateway",
+                    "build-and-test-develop-provesy-ivon-gateway", "build-and-test-develop-provesy-master-data",
+                    "build-and-test-develop-provesy-pavement", "build-and-test-develop-provesy-test-section",
+                    "build-and-test-develop-provesy-warranty",
+                    "deploy-develop-provesy-asphalt-mixture", "deploy-develop-provesy-backend-gateway",
+                    "deploy-develop-provesy-contract", "deploy-develop-provesy-event",
+                    "deploy-develop-provesy-fme-gateway", "deploy-develop-provesy-geo-gateway",
+                    "deploy-develop-provesy-ivon-gateway", "deploy-develop-provesy-master-data",
+                    "deploy-develop-provesy-pavement", "deploy-develop-provesy-test-section",
+                    "deploy-develop-provesy-warranty",
+                    "deploy-e2e-develop-provesy-asphalt-mixture", "deploy-e2e-develop-provesy-backend-gateway",
+                    "deploy-e2e-develop-provesy-contract", "deploy-e2e-develop-provesy-event",
+                    "deploy-e2e-develop-provesy-fme-gateway", "deploy-e2e-develop-provesy-geo-gateway",
+                    "deploy-e2e-develop-provesy-ivon-gateway", "deploy-e2e-develop-provesy-master-data",
+                    "deploy-e2e-develop-provesy-pavement", "deploy-e2e-develop-provesy-test-section",
+                    "deploy-e2e-develop-provesy-warranty",
+                    "trigger-e2e-develop", "webportal-e2e-develop"
+                ]
+
+            if job_name in target_list:
+                idx = target_list.index(job_name)
+                return (x_offset + (idx // 8), idx % 8)
+
+        # --- CYCLE 1: MASTER ---
+        elif effective_cycle == 1:
+            if is_wp:
+                target_list = [
+                    "build-and-test-draat", "build-and-test-file-store", 
+                    "build-and-test-gateway", "build-and-test-project-app", 
+                    "build-and-test-ivon", "build-and-test-projectmanagement", 
+                    "build-and-test-usermanagement", "build-and-test-winfrabase",
+                    "build-and-test-winfrabase-converter", "build-and-test-gns",
+                    "deploy-e2e-master-draat", "deploy-e2e-master-file-store", 
+                    "deploy-e2e-master-gateway", "deploy-e2e-master-project-app", 
+                    "deploy-e2e-master-ivon", "deploy-e2e-master-projectmanagement",
+                    "deploy-e2e-master-usermanagement", "deploy-e2e-master-winfrabase", 
+                    "deploy-e2e-master-winfrabase-converter", "deploy-e2e-master-gns",
+                    "trigger-e2e-master", "webportal-e2e"
+                ]
+            else:  # bp-all-osraoa
+                target_list = [
+                    "build-and-test-provesy-asphalt-mixture", "build-and-test-provesy-backend-gateway",
+                    "build-and-test-provesy-contract", "build-and-test-provesy-event",
+                    "build-and-test-provesy-fme-gateway", "build-and-test-provesy-geo-gateway",
+                    "build-and-test-provesy-ivon-gateway", "build-and-test-provesy-master-data",
+                    "build-and-test-provesy-pavement", "build-and-test-provesy-test-section",
+                    "build-and-test-provesy-warranty",
+                    "deploy-e2e-master-provesy-asphalt-mixture", "deploy-e2e-master-provesy-backend-gateway",
+                    "deploy-e2e-master-provesy-contract", "deploy-e2e-master-provesy-event",
+                    "deploy-e2e-master-provesy-fme-gateway", "deploy-e2e-master-provesy-geo-gateway",
+                    "deploy-e2e-master-provesy-ivon-gateway", "deploy-e2e-master-provesy-master-data",
+                    "deploy-e2e-master-provesy-pavement", "deploy-e2e-master-provesy-test-section",
+                    "deploy-e2e-master-provesy-warranty",
+                    "trigger-e2e-master", "webportal-e2e"
+                ]
+
+            if job_name in target_list:
+                idx = target_list.index(job_name)
+                return (x_offset + (idx // 8), idx % 8)
+
+        # --- CYCLE 2: DEPLOYS & APPS ---
+        elif effective_cycle == 2:
+            if is_wp:
+                target_list = [
+                    "deploy-pr", "deploy-pr-wbc", 
+                    "deploy-test", "deploy-test-wbc", 
+                    "deploy-acceptance", "deploy-acceptance-wbc", 
+                    "deploy-production", "deploy-production-wb", "deploy-production-wbc"
+                ]
+            else:  # bp-all-osraoa
+                target_list = [
+                    "deploy-pr", "deploy-test", "deploy-acceptance", "deploy-production"
+                ]
+
+            if job_name in target_list:
+                idx = target_list.index(job_name)
+                return (x_offset + (idx // 8), idx % 8)
 
     return None
 
@@ -891,7 +650,6 @@ def getData():
 
 
 if __name__ == "__main__":
-    # Scherm volledig leegmaken bij opstarten om kleurverwarring te voorkomen
     for x in range(16):
         for y in range(16):
             try:
@@ -911,4 +669,3 @@ if __name__ == "__main__":
             laatste_api_check = nu
             
         time.sleep(0.5)
-

@@ -8,7 +8,7 @@ from requests.auth import HTTPBasicAuth
 
 apiBase = "https://slack.com/api/"
 #see secrets.md for token details
-accesToken = "Bearer token"
+accessToken = "Bearer token"
 
 # Kleuren definities (Hex-waardes voor de LumiCube)
 succeededColour = 0x00ff00  # Groen
@@ -261,12 +261,6 @@ def build_pipeline_column_map():
             PIPELINE_GROUPS[active_group]
         )
     }
-    # DEBUG
-    ########
-    # print(
-    #     f"Active group: {active_group} -> "
-    #     f"{PIPELINE_GROUPS[active_group]}"
-    # )
         
 pipeline_column_map = {} 
 
@@ -362,13 +356,10 @@ monitoredGNSPrJobs = [
 
 
 def get_pipeline_group_position(pipeline_name):
-    # Geeft de zichtbare kolom terug voor de huidige actieve groep.
     p_name = pipeline_name.lower()
     for configured_name, col in pipeline_column_map.items():
-
         if configured_name in p_name:
             return col
-
     return None
     
 def animate():
@@ -392,8 +383,6 @@ def animate():
     slow_counter += 1
 
     if slow_counter >= 2:
-        # indien je paused wilt laten knipperen:
-        # alternate_slow = not alternate_slow
         slow_counter = 0
 
     # ==========================================================
@@ -411,20 +400,14 @@ def animate():
     group_timer += 1
 
     if group_timer >= GROUP_SWITCH_CYCLES:
-    
-        old_group = active_group
-    
-        # 0 -> 1 -> 2 -> 0 -> 1 -> ...
         active_group = (
             active_group + 1
         ) % len(PIPELINE_GROUPS)
     
         build_pipeline_column_map()
     
-        # data opnieuw opbouwen voor deze groep
         getData()
 
-        # rechterpaneel volledig leegmaken
         for x in range(8, 16):
             for y in range(8):
                 display.set_led(
@@ -704,12 +687,6 @@ def process_jobs(jobsJson):
 
 
 def get_job_coordinates(pipeline_name, job_name):
-    """
-    Berekent exact de (x, y) coördinaten voor de LumiCube volgens DOCUMENTATION.md.
-    - Links  (x: 0-7, y: 0-7) : wp-all-osraoa
-    - Top    (x: 0-7, y: 8-15): wp-tasks-osraoa & aoa-docker
-    - Rechts (x: 8-15, y: 0-7): De 8 hoofd -osrpraoa backend pipelines
-    """
     p_name = pipeline_name.lower()
 
     # ==========================================================================
@@ -757,7 +734,6 @@ def get_job_coordinates(pipeline_name, job_name):
             elif idx == 31: return (1, 13)  # rebuild-apps
                 
             # Groep 4: GNS Cleardb (Rij 14) & GNS Tests (Rij 15)
-            # Exact uitgelijnd volgens de documentatie-matrix!
             elif 32 <= idx <= 34:  # gns-cleardb (ontwikkel, test, acceptatie)
                 return (3 + (idx - 32), 14) # Kolom 3, 4, 5 op rij 14
             elif 36 <= idx <= 39:  # test-gns (ontwikkel, test, acc, prod)
@@ -790,20 +766,6 @@ def get_job_coordinates(pipeline_name, job_name):
         if xIndex is None:
             return None
             
-        # ------------------------------------------------------
-        # Carrousel groep
-        # ------------------------------------------------------
-        if xIndex is None:
-            for pipeline_name, col in pipeline_column_map.items():
-                if pipeline_name in p_name:
-                    xIndex = col
-                    break
-                if xIndex is None:
-                    return None
-
-        # ------------------------------------------------------
-        # Job-naar-rij vertaling
-        # ------------------------------------------------------
         y_idx = None
 
         if job_name in monitoredPrJobs:
@@ -830,14 +792,6 @@ def get_job_coordinates(pipeline_name, job_name):
         if y_idx is None:
             return None
 
-        # DEBUG
-        ########
-        # if y_idx == 0:
-        #     print(
-        #         f"GROUP={active_group} "
-        #         f"PIPELINE={pipeline_name} "
-        #         f"X={xIndex}"
-        #     )
         return (xIndex, y_idx)
         
     # ==========================================================================
@@ -855,14 +809,13 @@ def get_job_coordinates(pipeline_name, job_name):
 
 
 def getData():
-    # Haalt bestanden op van Slack, pakt de nieuwste zip uit en verwerkt de JSON.
-    global isError, checkDelayCount
+    global isError
     requestData = {'channel': 'C04B02K7RA6'}
     
     try:
         r = requests.post(
             apiBase + 'files.list', 
-            headers={'Authorization': accesToken, 'Content-Type': 'application/json'},
+            headers={'Authorization': accessToken, 'Content-Type': 'application/json'},
             params=requestData,
             timeout=5
         )
@@ -900,7 +853,7 @@ def getData():
             
         file_response = requests.get(
             file_url, 
-            headers={'Authorization': accesToken},
+            headers={'Authorization': accessToken},
             timeout=10
         )
         
@@ -920,14 +873,13 @@ def getData():
         return False
 
     if success and len(files) > 1:
-        # Loop door alle bestanden heen, BEHALVE de allerlaatste (die we net gebruikt hebben)
         for old_file in files[:-1]:
             old_file_id = old_file.get('id')
             if old_file_id:
                 try:
                     requests.post(
                         apiBase + 'files.delete',
-                        headers={'Authorization': accesToken, 'Content-Type': 'application/json'},
+                        headers={'Authorization': accessToken, 'Content-Type': 'application/json'},
                         json={'file': old_file_id},
                         timeout=5
                     )
@@ -939,6 +891,14 @@ def getData():
 
 
 if __name__ == "__main__":
+    # Scherm volledig leegmaken bij opstarten om kleurverwarring te voorkomen
+    for x in range(16):
+        for y in range(16):
+            try:
+                display.set_led(x, y, black)
+            except Exception:
+                pass
+
     getData()
     laatste_api_check = time.time()
     
@@ -951,4 +911,4 @@ if __name__ == "__main__":
             laatste_api_check = nu
             
         time.sleep(0.5)
-        
+

@@ -12,18 +12,18 @@ accessToken = "Bearer token"
 
 
 # Kleuren definities (Hex-waardes voor de LumiCube)
-succeededColour = 0x00ff00  # Groen
-erroredColour   = 0xffc099
-abortedColour   = 0x66481f
-pausedColour    = 0x0000ff  # Blauw
-pinnedColour    = 0x800080  # Paars
-failedColour    = 0xff0000  # Rood
-pendingColour   = 0xffffff  # Wit
-startedColour   = 0xffff00  # Geel
-black           = 0x000000
-red             = 0xff0000
-white           = 0xffffff
-orange          = 0xffa500
+succeededColour = 0x00ff00  # Groen (Bright Green)
+erroredColour   = 0xffc099  # Perzik / Lichtoranje (Peach / Light Orange)
+abortedColour   = 0x66481f  # Donkerbruin (Dark Brown)
+pausedColour    = 0x0000ff  # Blauw (Blue)
+pinnedColour    = 0x800080  # Paars (Purple)
+failedColour    = 0xff0000  # Rood (Red)
+pendingColour   = 0xffffff  # Wit (White)
+startedColour   = 0xffff00  # Geel (Yellow)
+black           = 0x000000  # Zwart (Black)
+red             = 0xff0000  # Rood (Red)
+white           = 0xffffff  # Wit (White)
+orange          = 0xffa500  # Oranje (Orange)
 
 COLOUR_MAP = {
     "succeeded": succeededColour,
